@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>设备池管理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        button {
+            margin: 0;
+            padding: 4px 8px;
+        }
+
+        /* 通知样式 */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+    </style>
+    <link rel="stylesheet" href="index.css">
+    <script>
+        let ws;
+
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${location.host}`);
+
+            ws.onopen = () => {
+                console.log('Connected to WebSocket server');
+            };
+
+            ws.onmessage = event => {
+                const message = JSON.parse(event.data);
+                if (message.type === 'all-devices') {
+                    renderDeviceTable(message.devices);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket connection closed');
+            };
+        }
+
+        function renderDeviceTable(devices) {
+            const deviceTableBody = document.getElementById('device-table-body');
+            deviceTableBody.innerHTML = '';
+
+            devices.forEach(device => {
+                let releaseButton = '';
+                if (device.locked) {
+                    releaseButton = `<button class="blue-button" onclick="releaseDevice('${device.ip}')">释放</button>`;
+                }
+
+                const removeButton = `<button class="delete-button" onclick="removeDevice('${device.ip}')">移除</button>`;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${device.ip}</td>
+                    <td>${device.name}</td>
+                    <td>${device.locked ? '是' : '否'}</td>
+                    <td>${device.lockStartTime || ''}</td>
+                    <td>${device.lockDuration || ''}</td>
+                    <td>${device.lockedDuration || ''}</td>
+                    <td>${device.purpose || ''}</td>
+                    <td>${releaseButton} ${removeButton}</td>
+                `;
+                deviceTableBody.appendChild(row);
+            });
+        }
+
+        // 自定义通知函数
+        function showNotification(message, isError = false) {
+            const notificationContainer = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+
+            notification.style.backgroundColor = isError ? '#f8d7da' : '#d4edda';
+            notification.style.color = isError ? '#721c24' : '#155724';
+            notification.style.border = isError ? '1px solid #f5c6cb' : '1px solid #c3e6cb';
+            notification.style.borderRadius = '5px';
+            notification.style.padding = '10px';
+            notification.style.marginTop = '10px';
+            notification.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            notification.textContent = message;
+
+            notificationContainer.appendChild(notification);
+
+            // 3秒后自动移除
+            setTimeout(() => {
+                notificationContainer.removeChild(notification);
+            }, 3000);
+        }
+
+        // 更新各个操作函数以使用自定义通知
+        async function addDevice(event) {
+            event.preventDefault();
+            const ip = document.getElementById('ip').value;
+            const name = document.getElementById('name').value;
+
+            const response = await fetch('/devices', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ip, name})
+            });
+            const result = await response.json();
+            showNotification(result.message || result.error, !!result.error);
+        }
+
+        async function releaseDevice(ip) {
+            const response = await fetch(`/devices/release/${ip}`, {method: 'POST'});
+            const result = await response.json();
+            showNotification(result.message ||结果.error, !!result.error);
+        }
+
+        async function removeDevice(ip) {
+            const response = await fetch(`/devices/${ip}`, {method: 'DELETE'});
+            const result = await response.json();
+            showNotification(result.message || result.error, !!result.error);
+        }
+
+        async function lockDevice(event) {
+            event.preventDefault();
+            const purpose = document.getElementById('purpose').value;
+
+            const response = await fetch('/devices/lock-free', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({purpose})
+            });
+            const result = await response.json();
+            showNotification(result.message || result.error, !!result.error);
+        }
+
+        document.addEventListener('DOMContentLoaded', connectWebSocket);
+    </script>
+</head>
+<body>
+<h1 style="text-align: center;margin-bottom: 200px">设备状态管理</h1>
+
+<form class="form-container" onsubmit="addDevice(event)">
+    <div class="item">
+        <label for="ip">新设备IP:</label>
+        <input type="text" id="ip" name="ip" required>
+    </div>
+    <div class="item">
+        <label for="name">新设备名:</label>
+        <input type="text" id="name" name="name" required>
+    </div>
+
+    <input class="blue-button" type="submit" value="添加设备">
+</form>
+
+<form class="form-container" onsubmit="lockDevice(event)">
+    <div class="item">
+        <label for="purpose">设备用途:</label>
+        <input type="text" id="purpose" name="purpose">
+    </div>
+    <input class="blue-button" type="submit" value="获取空闲设备">
+</form>
+
+<table id="device-table">
+    <thead>
+    <tr>
+        <th>设备IP地址</th>
+        <th>设备名称</th>
+        <th>锁定状态</th>
+        <th>锁定开始时间</th>
+        <th>上一次锁定结束时间</th>
+        <th>当前锁定用时</th>
+        <th>用途</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody id="device-table-body"></tbody>
+</table>
+
+<!-- 通知容器 -->
+<div id="notification-container"></div>
+
+</body>
+</html>

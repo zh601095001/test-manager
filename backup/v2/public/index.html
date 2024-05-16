@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Device Pool Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        form { margin-bottom: 20px; }
+        label { display: inline-block; width: 120px; }
+        input[type="text"] { width: 200px; margin-bottom: 10px; }
+        input[type="submit"], button { margin-left: 124px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 8px; border: 1px solid #ccc; text-align: left; }
+        th { background-color: #f4f4f4; }
+        button { margin: 0; padding: 4px 8px; }
+    </style>
+    <script>
+        let ws;
+
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${location.host}`);
+
+            ws.onopen = () => {
+                console.log('Connected to WebSocket server');
+            };
+
+            ws.onmessage = event => {
+                const message = JSON.parse(event.data);
+                if (message.type === 'all-devices') {
+                    renderDeviceTable(message.devices);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket connection closed');
+            };
+        }
+
+        function renderDeviceTable(devices) {
+            const deviceTableBody = document.getElementById('device-table-body');
+            deviceTableBody.innerHTML = '';
+
+            devices.forEach(device => {
+                let releaseButton = '';
+                if (device.locked) {
+                    releaseButton = `<button onclick="releaseDevice('${device.ip}')">Release</button>`;
+                }
+
+                const removeButton = `<button onclick="removeDevice('${device.ip}')">Remove</button>`;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${device.ip}</td>
+                    <td>${device.name}</td>
+                    <td>${device.locked ? 'Yes' : 'No'}</td>
+                    <td>${device.lockStartTime || ''}</td>
+                    <td>${device.lockDuration || ''}</td>
+                    <td>${device.purpose || ''}</td>
+                    <td>${releaseButton} ${removeButton}</td>
+                `;
+                deviceTableBody.appendChild(row);
+            });
+        }
+
+        async function addDevice(event) {
+            event.preventDefault();
+            const ip = document.getElementById('ip').value;
+            const name = document.getElementById('name').value;
+
+            const response = await fetch('/devices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip, name })
+            });
+            const result = await response.json();
+            alert(result.message || result.error);
+        }
+
+        async function releaseDevice(ip) {
+            const response = await fetch(`/devices/release/${ip}`, { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || result.error);
+        }
+
+        async function removeDevice(ip) {
+            const response = await fetch(`/devices/${ip}`, { method: 'DELETE' });
+            const result = await response.json();
+            alert(result.message || result.error);
+        }
+
+        async function lockDevice(event) {
+            event.preventDefault();
+            const purpose = document.getElementById('purpose').value;
+
+            const response = await fetch('/devices/lock-free', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ purpose })
+            });
+            const result = await response.json();
+            alert(result.message || result.error);
+        }
+
+        document.addEventListener('DOMContentLoaded', connectWebSocket);
+    </script>
+</head>
+<body>
+<h1>Device Pool Management</h1>
+
+<form onsubmit="addDevice(event)">
+    <label for="ip">Device IP:</label>
+    <input type="text" id="ip" name="ip" required>
+    <label for="name">Device Name:</label>
+    <input type="text" id="name" name="name" required>
+    <input type="submit" value="Add Device">
+</form>
+
+<form onsubmit="lockDevice(event)">
+    <label for="purpose">Purpose:</label>
+    <input type="text" id="purpose" name="purpose" required>
+    <input type="submit" value="Lock a Free Random Device">
+</form>
+
+<table id="device-table">
+    <thead>
+    <tr>
+        <th>IP Address</th>
+        <th>Name</th>
+        <th>Locked</th>
+        <th>Lock Start Time</th>
+        <th>Lock Duration</th>
+        <th>Purpose</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="device-table-body"></tbody>
+</table>
+</body>
+</html>

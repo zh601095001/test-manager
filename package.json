@@ -1,19 +1,12 @@
 {
-  "name": "test",
+  "name": "test_manager",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "async": "^3.2.5",
-    "express": "^4.19.2",
-    "moment-timezone": "^0.5.45",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0",
-    "ws": "^8.17.0"
-  }
+  "repository": "https://github.com/zh601095001/test-manager.git",
+  "author": "zhaohao <601095001@qq.com>",
+  "license": "MIT",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
 }

@@ -2,6 +2,7 @@
   "name": "test_manager",
   "version": "1.0.0",
   "main": "index.js",
+  "private": "true",
   "repository": "https://github.com/zh601095001/test-manager.git",
   "author": "zhaohao <601095001@qq.com>",
   "license": "MIT",

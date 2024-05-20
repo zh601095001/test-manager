@@ -8,9 +8,50 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: root
-#      MONGO_INITDB_ROOT_PASSWORD: example
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - NODE_ENV=${NODE_ENV}
+    command: >
+      sh -c 'if [ "$$NODE_ENV" = "development" ]; then
+               yarn;
+               yarn dev;
+             else
+               yarn start;
+             fi'
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=${NODE_ENV}
+    command: >
+      sh -c 'if [ "$$NODE_ENV" = "development" ]; then
+               yarn;
+               yarn dev;
+             else
+               yarn start;
+             fi'
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
 
 volumes:
   mongo-data:

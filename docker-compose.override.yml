@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  backend:
+    volumes:
+      - ./backend:/app
+      - ./backend/node_modules:/node_modules
+
+  frontend:
+    volumes:
+      - ./frontend:/app
+      - ./frontend/node_modules:/node_modules
+

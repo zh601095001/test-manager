@@ -25,6 +25,8 @@
     "typescript": "^5.4.5"
   },
   "scripts": {
-    "dev": "ts-node server.ts"
+    "dev": "nodemon",
+    "start": "node ./src/server.js",
+    "build": "tsc"
   }
 }

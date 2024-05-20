@@ -7,7 +7,6 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
     "rootDir": ".",
     "baseUrl": ".",
     "resolveJsonModule": true
@@ -17,6 +16,5 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
   ]
 }

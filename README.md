@@ -1,17 +1,29 @@
-# 1.安装依赖
+# 开发环境部署
 
-1. npm i
-2. runner上存在chrome、docker
-3. 部署runner
-4. 多runner独立端口配置上位机
+1. 修改.env
 
+```
+NODE_ENV=development
+```
 
+2. 执行脚本
 
-## 2.建立队列
+```shell
+yarn dev
+```
 
-使用mongodb实现
+# 生产环境部署
 
-## 3.多runner同时运行并收集报告
+1. 修改.env
 
+```
+NODE_ENV=production
+```
+
+2. 执行脚本
+
+```shell
+yarn deploy
+```
 
 

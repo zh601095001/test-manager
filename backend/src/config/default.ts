@@ -1,6 +1,6 @@
 export default {
     db: {
-        uri: 'mongodb://localhost:27017/deviceManagement',
+        uri: 'mongodb://mongodb:27017/deviceManagement',
     },
     swaggerOptions: {
         swaggerDefinition: {

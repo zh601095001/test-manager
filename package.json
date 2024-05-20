@@ -9,5 +9,9 @@
   "workspaces": [
     "frontend",
     "backend"
-  ]
+  ],
+  "scripts": {
+    "dev": "docker-compose up -d",
+    "deploy": "docker-compose -f docker-compose.yml up -d"
+  }
 }

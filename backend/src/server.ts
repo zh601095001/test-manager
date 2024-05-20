@@ -3,9 +3,9 @@ import path from 'path';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import mongoose from 'mongoose';
-import config from './src/config/default';
-import deviceRoutes from './src/routes/deviceRoutes';
-import { handleUpgrade } from './src/routes/wsRoutes';
+import config from './config/default';
+import deviceRoutes from './routes/deviceRoutes';
+import { handleUpgrade } from './routes/wsRoutes';
 
 const app = express();
 app.use(express.json());

@@ -1,13 +1,15 @@
 import {Document} from "mongoose";
 
 interface IDevice extends Document {
-    ip: string;
-    name: string;
-    locked: boolean;
-    lockStartTime: Date | null;
-    lockDuration: string | null;
-    purpose: string | null;
-    lockedDuration: string | null;
+    deviceName: string;
+    deviceIp: string;
+    deviceMac: string | null;
+    deviceFirmware: string | null;
+    lockTime: Date | null;
+    duration: string | null;
+    user: string | null;
+    comment: string | null;
+    status: "locked"| "unlocked"|"maintained";
 }
 
 export {

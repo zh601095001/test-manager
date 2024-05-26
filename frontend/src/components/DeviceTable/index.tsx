@@ -1,116 +1,238 @@
 "use client"
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {selectDevices} from "@/features/websocket/websocketSlice";
-import {useNotifications} from "@/components/NotificationProvider";
-import {showLoading, hideLoading} from "@/features/loading/loadingSlice";
+import {Button, Modal, Popconfirm, Table, Form, Input} from "antd"
+import EditableRow from "@/components/DeviceTable/EditableRow";
+import EditableCell from "@/components/DeviceTable/EditableCell";
+import {selectCurrentRoles, selectCurrentUser} from "@/features/auth/authSlice";
+import {
+    useLockByDeviceIpMutation,
+    useReleaseDeviceByIpMutation,
+    useRemoveDeviceByIpMutation, useUpdateDeviceMutation
+} from "@/services/devicePool";
 
 // 定义设备对象的接口
 interface Device {
-    ip: string;
-    name: string;
-    locked: boolean;
-    lockStartTime: string | null;
-    lockedDuration: string | null;
-    purpose: string | null;
+    deviceName: string;
+    deviceIp: string;
+    deviceMac: string;
+    deviceFirmware: string | null;
+    lockTime: string | null;
+    duration: string | null;
+    user: string;
+    comment: string;
+    status: "locked" | "unlocked" | "maintained";
 }
 
+
+type EditableTableProps = Parameters<typeof Table>[0];
+type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
+
 const DeviceTable: React.FC = () => {
-    // 使用选择器的类型，假设它返回Device数组
     const allDevices: Device[] = useSelector(selectDevices);
-    const {showNotification} = useNotifications();
-    const dispatch = useDispatch()
+    const roles = useSelector(selectCurrentRoles)
+    const user = useSelector(selectCurrentUser)
+    const [releaseDeviceByIp] = useReleaseDeviceByIpMutation()
+    const [lockByDeviceIp] = useLockByDeviceIpMutation()
+    const [removeDeviceByIp] = useRemoveDeviceByIpMutation()
+    const [updateDevice] = useUpdateDeviceMutation()
+    const [form] = Form.useForm()
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentMaintainDeviceIp, setCurrentMaintainDeviceIp] = useState("")
 
+    const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
+        {
+            title: '设备名称',
+            dataIndex: 'deviceName',
+            editable: true,
+        },
+        {
+            title: '设备ip地址',
+            dataIndex: 'deviceIp',
+        },
+        {
+            title: '设备mac地址',
+            dataIndex: 'deviceMac',
+        },
+        {
+            title: '固件版本',
+            dataIndex: 'deviceFirmware',
+        },
+        {
+            title: '锁定起始时间',
+            dataIndex: 'lockTime',
+        },
+        {
+            title: '耗时',
+            dataIndex: 'duration',
+        },
+        {
+            title: '使用者',
+            dataIndex: 'user',
+        },
+        {
+            title: '备注',
+            dataIndex: 'comment',
+            editable: true
+        },
+        {
+            title: '操作',
+            dataIndex: 'operation',
+            render: (_, record) => {
+                const {status} = record
+                const deviceUser = record.user
+                const deviceIp = record.deviceIp
+                const isCurrentUser = deviceUser === user
+                const isAdmin = roles && roles.includes("admin")
+                const isMaintained = status === "maintained" || (status === "locked" && !isCurrentUser)
+                // @ts-ignore
+                let operation = {
+                    "locked": {
+                        text: "释放",
+                        show: isAdmin || isCurrentUser,
+                        action: () => releaseDeviceByIp({deviceIp}),
+                        backgroundColor: "#28a324"
+                    },
+                    "automated": {
+                        text: "释放",
+                        show: true,
+                        action: () => releaseDeviceByIp({deviceIp}),
+                        backgroundColor: "#28a324"
+                    },
+                    "unlocked": {
+                        text: "锁定",
+                        show: true,
+                        action: () => lockByDeviceIp({deviceIp, user: user || ""})
+                    },
+                    "maintained": {
+                        text: "解除维护",
+                        show: isAdmin,
+                        action: () => releaseDeviceByIp({deviceIp})
+                    }
+                }[status]
+                return allDevices.length >= 1 ? (
+                    <div>
+                        {
+                            operation.show ? (
+                                <Popconfirm
+                                    title={`确定要${operation.text}?`}
+                                    okText="确认"
+                                    cancelText="取消"
+                                    onConfirm={operation.action}
+                                >
+                                    <Button type="primary" style={{
+                                        marginRight: 10,
+                                        background: operation.backgroundColor
+                                    }}>{operation.text}</Button>
+                                </Popconfirm>
+                            ) : ""
+                        }
 
-    async function lockSpecificDevice(ip: string): Promise<void> {
-        const purpose: string | null = prompt('请输入锁定设备的使用者:');
-        if (!purpose) return;
+                        {
+                            !isMaintained ? <Button type="primary" style={{marginRight: 10, backgroundColor: "#efe50c"}}
+                                                    onClick={() => handleMaintain(deviceIp)}>报告问题</Button> : ""
+                        }
 
-        dispatch(showLoading())
-        try {
-            const response = await fetch(`/api/devices/lock/${ip}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({purpose})
-            });
-            const result = await response.json();
-            showNotification(result.message || result.error, !!result.error);
-        } finally {
-            dispatch(hideLoading())
+                        {
+                            isAdmin ? (
+                                <Popconfirm
+                                    title="确定要删除?"
+                                    okText="确认"
+                                    cancelText="取消"
+                                    onConfirm={() => removeDeviceByIp({deviceIp})}
+                                >
+                                    <Button type="primary" danger style={{marginRight: 10}}>删除</Button>
+                                </Popconfirm>
+                            ) : ""
+                        }
+                    </div>
+                ) : null
+            },
         }
+    ];
+
+    const handleSave = (row: Device) => {
+        updateDevice({
+            deviceIp: row.deviceIp,
+            deviceName: row.deviceName,
+            comment: row.comment
+        })
+    };
+
+    const components = {
+        body: {
+            row: EditableRow,
+            cell: EditableCell,
+        },
+    };
+
+    const columns = defaultColumns.map((col) => {
+        if (!col.editable) {
+            return col;
+        }
+        return {
+            ...col,
+            onCell: (record: Device) => {
+                return {
+                    record,
+                    editable: col.editable,
+                    dataIndex: col.dataIndex,
+                    title: col.title,
+                    handleSave,
+                }
+            },
+        };
+    });
+
+    const handleMaintain = (deviceIp: string) => {
+        setCurrentMaintainDeviceIp(deviceIp)
+        setIsModalOpen(true)
     }
-
-    async function releaseDevice(ip: string): Promise<void> {
-        const isConfirmed = confirm(`你确定要释放设备 ${ip} 吗？`);
-        if (!isConfirmed) return;
-
-        dispatch(showLoading())
-        try {
-            const response = await fetch(`/api/devices/release/${ip}`, {method: 'POST'});
-            const result = await response.json();
-            showNotification(result.message || result.error, !!result.error);
-        } finally {
-            dispatch(hideLoading())
-        }
-    }
-
-    async function removeDevice(ip: string): Promise<void> {
-        const isConfirmed = confirm(`你确定要移除设备 ${ip} 吗？`);
-        if (!isConfirmed) return;
-
-        dispatch(showLoading())
-        try {
-            const response = await fetch(`/api/devices/${ip}`, {method: 'DELETE'});
-            const result = await response.json();
-            showNotification(result.message || result.error, !!result.error);
-        } finally {
-            dispatch(hideLoading())
-        }
-    }
-
-    function determineRowStyle(device: Device): React.CSSProperties {
-        if (device.purpose?.includes("维护")) {
-            return {backgroundColor: '#fffa8e'};
-        }
-        if (device.purpose?.includes("自动化测试")) {
-            return {backgroundColor: '#e0e8f6'};
-        }
-        return device.locked ? {backgroundColor: '#f8d7da'} : {};
+    const handleMaintainModal = () => {
+        form.validateFields().then(({comment}: any) => {
+            updateDevice({
+                deviceIp: currentMaintainDeviceIp,
+                comment,
+                status: "maintained"
+            })
+            setIsModalOpen(false)
+        })
     }
 
     return (
-        <table id="device-table">
-            <thead>
-            <tr>
-                <th>设备名称</th>
-                <th>设备IP地址</th>
-                <th>锁定起始时间</th>
-                <th>耗时</th>
-                <th>使用者(用途)</th>
-                <th>操作</th>
-            </tr>
-            </thead>
-            <tbody>
-            {allDevices.map((device: Device) => (
-                <tr key={device.ip} style={determineRowStyle(device)}>
-                    <td>{device.name}</td>
-                    <td>{device.ip}</td>
-                    <td>{device.lockStartTime || ''}</td>
-                    <td>{device.lockedDuration || ''}</td>
-                    <td>{device.purpose || ''}</td>
-                    <td>
-                        {device.locked ? (
-                            <button className="blue-button" onClick={() => releaseDevice(device.ip)}>释放</button>
-                        ) : (
-                            <button className="green-button" onClick={() => lockSpecificDevice(device.ip)}>锁定</button>
-                        )}
-                        <button className="delete-button" onClick={() => removeDevice(device.ip)}>移除</button>
-                    </td>
-                </tr>
-            ))}
-            </tbody>
-        </table>
+        <div>
+            <Table
+                components={components}
+                rowClassName={() => 'editable-row'}
+                dataSource={allDevices}
+                columns={columns as ColumnTypes}
+                bordered={false}
+                rowHoverable={false}
+                rowKey="deviceIp"
+            />
+            <Modal
+                title={"维护"}
+                open={isModalOpen}
+                onOk={handleMaintainModal}
+                onCancel={() => setIsModalOpen(false)}
+                okText="添加"
+                cancelText="取消"
+            >
+                <Form form={form}>
+                    <Form.Item
+                        name="comment"
+                        label="问题"
+                        labelCol={{span: 8}}
+                        wrapperCol={{span: 16}}
+                        rules={[{required: true, message: '请输入错误原因'}]}
+                    >
+                        <Input/>
+                    </Form.Item>
+                </Form>
+            </Modal>
+        </div>
     );
-}
+};
 
-export default DeviceTable;
+export default DeviceTable

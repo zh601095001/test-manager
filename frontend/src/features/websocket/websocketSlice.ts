@@ -2,12 +2,15 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
 interface Device {
-    ip: string;
-    name: string;
-    locked: boolean;
-    lockStartTime: string | null;
-    lockedDuration: string | null;
-    purpose: string | null;
+    deviceName: string;
+    deviceIp: string;
+    deviceMac: string;
+    deviceFirmware: string | null;
+    lockTime: string | null;
+    duration: string | null;
+    user: string;
+    comment: string;
+    status: "locked"| "unlocked"|"maintained";
 }
 
 interface WebSocketState {
@@ -25,7 +28,7 @@ export const websocketSlice = createSlice({
     reducers: {
         updateDevices: (state, action: PayloadAction<Device[]>) => {
             state.devices = action.payload;
-            state.hasFree = action.payload.some(device => !device.locked);
+            state.hasFree = action.payload.some(device => device.status==="unlocked");
         },
     },
 });

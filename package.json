@@ -6,12 +6,8 @@
   "repository": "https://github.com/zh601095001/test-manager.git",
   "author": "zhaohao <601095001@qq.com>",
   "license": "MIT",
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
   "scripts": {
-    "dev": "docker-compose up -d",
-    "deploy": "docker-compose -f docker-compose.yml up -d"
+    "dev": "docker compose up -d",
+    "deploy": "docker compose -f docker-compose.yml up -d"
   }
 }

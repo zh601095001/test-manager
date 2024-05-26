@@ -2,11 +2,17 @@ version: '3.8'
 
 services:
   backend:
+    environment:
+      - CHOKIDAR_USEPOLLING=true
     volumes:
       - ./backend:/app
       - ./backend/node_modules:/node_modules
 
   frontend:
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     volumes:
       - ./frontend:/app
       - ./frontend/node_modules:/node_modules

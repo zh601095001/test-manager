@@ -14,7 +14,7 @@ async function setDeviceUnlocked(device: IDevice) {
     device.status = "unlocked";
     device.lockTime = null;
     device.user = null;
-    device.comment = null;
+    device.comment = "-";
     await device.save();
 }
 

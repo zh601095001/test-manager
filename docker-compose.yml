@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:latest
-    container_name: mongodb
+    container_name: mongodb_manager
     ports:
       - "27017:27017"
     volumes:
@@ -28,8 +28,8 @@ services:
 
   frontend:
     build: ./frontend
-    ports:
-      - "3000:3000"
+#    ports:
+#      - "3000:3000"
     depends_on:
       - backend
     environment:
@@ -44,9 +44,9 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: nginx
+    container_name: nginx_manager
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - frontend
       - backend

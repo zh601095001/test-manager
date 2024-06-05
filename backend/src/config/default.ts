@@ -6,7 +6,8 @@ import bcrypt from 'bcryptjs';
 import {config} from "dotenv"
 import * as process from "node:process";
 import path from "path";
-import { PassportStatic } from 'passport';
+import {PassportStatic} from 'passport';
+
 const envPath = path.join(__dirname, '../../.env');
 
 config({
@@ -33,6 +34,7 @@ interface SwaggerDefinition {
             }
         }
     };
+    servers: any[]
 }
 
 interface SwaggerOptions {
@@ -45,7 +47,8 @@ interface AppConfig {
     swaggerOptions: SwaggerOptions;
     passport: (passport: passport.PassportStatic) => void;
     JWT_SECRET: string,
-    REFRESH_SECRET: string
+    REFRESH_SECRET: string,
+    // minio: any
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'DB5ndHn0jEGvjzUoOxVZeCXvcZAMkyjIfj79sfbtS-w_2024-05-25T09:10:10.890366';
@@ -58,9 +61,9 @@ const configPassport = (passport: PassportStatic) => {
         usernameField: 'username'
     }, async (username: string, password: string, done) => {
         try {
-            const user = await User.findOne({ username }) as IUser | null;
+            const user = await User.findOne({username}) as IUser | null;
             if (!user || !bcrypt.compareSync(password, user.password)) {
-                return done(null, false, { message: 'Incorrect username or password.' });
+                return done(null, false, {message: 'Incorrect username or password.'});
             }
             return done(null, user);
         } catch (error) {
@@ -93,9 +96,9 @@ const appConfig: AppConfig = {
         swaggerDefinition: {
             openapi: '3.0.0',
             info: {
-                title: 'Device Management API',
-                version: '1.0.0',
-                description: 'API for managing device pool with locking and unlocking features'
+                title: '设备池管理 & 自动化测试',
+                version: '2.0.0',
+                description: '自动化测试设备池管理及自动化测试CI/CD流程'
             },
             components: {
                 securitySchemes: {
@@ -105,13 +108,19 @@ const appConfig: AppConfig = {
                         bearerFormat: 'JWT'
                     }
                 }
-            }
+            },
+            servers: [
+                {
+                    "url": "/api",
+                    "description": "Base path for all endpoints"
+                }
+            ],
         },
         apis: ['./src/routes/*.ts'],
     },
     passport: configPassport,
     JWT_SECRET,
-    REFRESH_SECRET
+    REFRESH_SECRET,
 };
 
 export default appConfig;

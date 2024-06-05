@@ -210,6 +210,7 @@ const DeviceTable: React.FC = () => {
                 bordered={false}
                 rowHoverable={false}
                 rowKey="deviceIp"
+                pagination={{pageSize: 100, pageSizeOptions: [50, 100]}}
             />
             <Modal
                 title={"维护"}

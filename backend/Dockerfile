@@ -1,5 +1,5 @@
 # 使用 Node.js 基础镜像
-FROM node:16
+FROM node:18
 
 WORKDIR /app
 

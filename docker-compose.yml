@@ -46,7 +46,7 @@ services:
     image: nginx:latest
     container_name: nginx_manager
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       - frontend
       - backend

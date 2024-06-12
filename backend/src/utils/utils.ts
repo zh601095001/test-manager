@@ -1,6 +1,8 @@
 import moment from "moment-timezone";
 import {format} from 'date-fns';
 import {Client, ConnectConfig} from 'ssh2';
+import {createHash} from "crypto";
+import {createReadStream} from "fs";
 
 function formatDuration(seconds: number) {
     const hours = Math.floor(seconds / 3600);
@@ -53,12 +55,12 @@ async function executeSSHCommand(config: ConnectConfig, command: string): Promis
                     return;
                 }
 
-                stream.on('close', (code, signal) => {
+                stream.on('close', (code: any, signal: any) => {
                     result.code = code;
                     result.signal = signal;
                     resolve(result);
                     conn.end();
-                }).on('data', (data) => {
+                }).on('data', (data: any) => {
                     result.stdout += data.toString();
                 }).stderr.on('data', (data) => {
                     result.stderr += data.toString();
@@ -71,9 +73,28 @@ async function executeSSHCommand(config: ConnectConfig, command: string): Promis
     });
 }
 
+const getFileHash = (filePath: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const hash = createHash('md5');
+        const stream = createReadStream(filePath);
+
+        stream.on('data', (chunk) => {
+            hash.update(chunk);
+        });
+
+        stream.on('end', () => {
+            resolve(hash.digest('hex'));
+        });
+
+        stream.on('error', (err) => {
+            reject(err);
+        });
+    });
+};
 export {
     formatDuration,
     getDateInUTC8,
     formatDate,
-    executeSSHCommand
+    executeSSHCommand,
+    getFileHash
 }

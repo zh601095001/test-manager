@@ -7,8 +7,14 @@ import * as tar from 'tar';
 import TestEntry from '../models/testEntry';
 import {promisify} from 'util';
 import fileService from '../services/htmlReportService';
+// import pLimit from 'p-limit';
+import async from "async";
 
+import {PassThrough} from "stream";
+import * as process from "node:process";
+import {ENDPOINT} from "../config/minioConfig";
 
+// const limit = pLimit(10);
 const exec = promisify(execCallback);
 
 interface Entry {
@@ -17,8 +23,11 @@ interface Entry {
 }
 
 async function downloadFile(url: string, filepath: string): Promise<void> {
+    const url_ = new URL(url)
+    url_.hostname = ENDPOINT
+    url_.search = ""
     const response = await axios({
-        url,
+        url: url_.href,
         method: 'GET',
         responseType: 'stream'
     });
@@ -31,25 +40,33 @@ async function downloadFile(url: string, filepath: string): Promise<void> {
 }
 
 async function compressDirectory(sourceDir: string, outputFilePath: string): Promise<string> {
-    const files = fs.readdirSync(sourceDir);
+    const output = fs.createWriteStream(outputFilePath);
+    const passThrough = new PassThrough();
 
-    return tar.c(
-        {
-            gzip: true,            // 开启 gzip 压缩
-            file: outputFilePath,  // 指定输出文件路径
-            cwd: sourceDir         // 设置当前工作目录为源目录
-        },
-        files  // 直接传递读取到的文件列表，而不是目录本身
-    ).then(() => {
+    output.on('close', () => {
         console.log('Compression complete');
-        return outputFilePath;
-    }).catch(err => {
+    });
+
+    tar.c(
+        {
+            gzip: true,
+            cwd: sourceDir
+        },
+        fs.readdirSync(sourceDir)
+    ).pipe(passThrough);
+
+    passThrough.pipe(output).on('error', (err) => {
         console.error('Error compressing directory:', err);
         throw err;
     });
+
+    return new Promise((resolve, reject) => {
+        output.on('finish', () => resolve(outputFilePath));
+        output.on('error', reject);
+    });
 }
 
-async function downloadAndMergeReports(testId: string): Promise<{ message: string; url: string; }> {
+async function downloadAndMergeReports(testId: string): Promise<{ message: string; url: string; remote_url: string }> {
     const entry: Entry | null = await TestEntry.findOne({test_id: testId});
     if (!entry) {
         throw new Error('Test entry not found');
@@ -60,12 +77,31 @@ async function downloadAndMergeReports(testId: string): Promise<{ message: strin
     const zipPath = path.join(downloadDir, zipFilename);
     fs.mkdirSync(downloadDir, {recursive: true});
 
-    const filepaths: string[] = await Promise.all(entry.blob_urls.map(async (blobUrl) => {
-        const filename = path.basename(new URL(blobUrl).pathname) + ".zip";
-        const filepath = path.join(downloadDir, filename);
-        await downloadFile(blobUrl, filepath);
-        return filepath;
-    }));
+    const filepaths: string[] = await new Promise((resolve, reject) => {
+        const downloadTasks = entry.blob_urls.map(blobUrl => {
+            return async (callback: any) => {
+                const filename = path.basename(new URL(blobUrl).pathname) + ".zip";
+                const filepath = path.join(downloadDir, filename);
+                downloadFile(blobUrl, filepath).then(() => {
+                    callback(null, filepath);
+                }).catch(err => {
+                    callback(err);
+                });
+            };
+        });
+
+        async.parallelLimit(downloadTasks, 5, (err, results) => {
+            if (err) {
+                console.error("Error executing downloads:", err);
+                reject(err)
+            } else {
+                // @ts-ignore
+                resolve(results)
+                console.log("All files downloaded:", results);
+            }
+        });
+    })
+
 
     const config = `export default {
         reporter: [['html', { open: 'never', outputFolder: './html' }]],
@@ -82,10 +118,13 @@ async function downloadAndMergeReports(testId: string): Promise<{ message: strin
 
     const zippedPath = await compressDirectory(path.join(downloadDir, "html"), zipPath);
     const url = await fileService.handleFileUpload(zippedPath)
-    fs.rmSync(downloadDir, { recursive: true, force: true });
+    fs.rmSync(downloadDir, {recursive: true, force: true});
+    const remote_url = new URL(url)
+    remote_url.hostname = "10.25.46.28"
     return {
         message: 'Reports are processed',
-        url
+        url,
+        remote_url: remote_url.href
     };
 }
 

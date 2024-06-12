@@ -1,11 +1,10 @@
-import fs from 'fs';
+import fs, {createReadStream} from 'fs';
 import path from 'path';
-import md5 from 'md5';
 import * as tar from 'tar';
-import { Request } from 'express';
-import { BUCKET_NAME, ENDPOINT, PORT } from "../config/minioConfig";
+import {BUCKET_NAME, ENDPOINT, PORT} from "../config/minioConfig";
 import minioClient from '../config/minioConfig';
 import mime from 'mime-types';  // 引入 mime-types 库
+import {getFileHash} from "../utils/utils";
 
 // Helper function to find 'index.html' recursively
 function findFileRecursively(dir: string, filename: string): string | null {
@@ -36,7 +35,7 @@ async function uploadDirectoryToMinio(directoryPath: string, bucketName: string,
             // 使用 mime-types 库自动确定 Content-Type
             const contentType = mime.lookup(filepath) || 'application/octet-stream';
 
-            await minioClient.fPutObject(bucketName, fileKey, filepath, { "Content-Type": contentType });
+            await minioClient.fPutObject(bucketName, fileKey, filepath, {"Content-Type": contentType});
         }
     }
 }
@@ -44,12 +43,11 @@ async function uploadDirectoryToMinio(directoryPath: string, bucketName: string,
 
 const handleFileUpload = async (file: Express.Multer.File | string): Promise<string> => {
     const filePath = typeof file === 'string' ? file : file.path;
-    const fileBuffer = fs.readFileSync(filePath);
-    const fileHash = md5(fileBuffer);
+    const fileHash = await getFileHash(filePath)
 
     const extractPath = path.join('uploads', fileHash);
     if (!fs.existsSync(extractPath)) {
-        fs.mkdirSync(extractPath, { recursive: true });
+        fs.mkdirSync(extractPath, {recursive: true});
         await tar.x({
             file: filePath,
             C: extractPath,
@@ -64,10 +62,10 @@ const handleFileUpload = async (file: Express.Multer.File | string): Promise<str
     await uploadDirectoryToMinio(extractPath, BUCKET_NAME, fileHash);
 
     fs.unlinkSync(filePath);  // Delete the temporary uploaded file
-    fs.rmSync(extractPath, { recursive: true, force: true }); // Delete the extracted directory
+    fs.rmSync(extractPath, {recursive: true, force: true}); // Delete the extracted directory
 
     const minioUrl = `http://${ENDPOINT}:${PORT}/${BUCKET_NAME}/${fileHash}/index.html`;
     return minioUrl;
 };
 
-export default { handleFileUpload };
+export default {handleFileUpload};

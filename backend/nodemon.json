@@ -7,6 +7,6 @@
     "src/**/*.spec.ts",
     "src/downloads"
   ],
-  "exec": "ts-node ./src/server.ts",
+  "exec": "set NODE_OPTIONS=--max-old-space-size=8192 && ts-node ./src/server.ts",
   "legacyWatch": true
 }

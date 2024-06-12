@@ -8,80 +8,88 @@ import {IDevice} from "../models/types";
 const waitingQueue: Task[] = [];
 
 
-const requestQueue = async.queue(async (task: Task, callback: () => void) => {
+const requestQueue = async.queue(async (task: Task, callback: (error?: Error | null, device?: IDevice | null) => void) => {
     try {
         const device: IDevice | null = await deviceService.getFreeDevice(task.status || "locked");
-        if (device) {
-            device.user = task.user;
-            device.comment = task.comment
-            // @ts-ignore
-            device.status = task.status
-            await device.save();
-            task.res.json({
-                message: `设备 ${device.deviceIp} 由 ${device.user} 锁定.`,
-                device,
-            });
-        } else {
-            waitingQueue.push(task); // 这里假设 waitingQueue 已经定义
+        if (!device) {
+            waitingQueue.push(task);
+            callback(new Error('无可用设备'), null);
+            return;
         }
-    } catch (error: any) { // 捕获所有类型的错误
-        task.res.status(500).json({error: error.message});
+        device.user = task.user;
+        device.comment = task.comment;
+        // @ts-ignore
+        device.status = task.status;
+        await device.save();
+        callback(null, device);
+    } catch (error) {
+        // @ts-ignore
+        callback(error);
     }
-    callback();
 }, 1);
 
 
 async function resolveWaitingRequests(): Promise<void> {
     while (waitingQueue.length > 0) {
-        const device: IDevice | null = await deviceService.getFreeDevice();
-        if (device) {
-            const task = waitingQueue.shift();
-            device.user = task?.user || null;
-            // @ts-ignore
-            device.comment = task.comment
-            // @ts-ignore
-            device.status = task.status
-            await device.save();
-            if (task?.res) {
-                task.res.json({
-                    message: `设备 ${device.deviceIp} 由 ${device.user} 锁定.`,
-                    device,
-                });
+        const task = waitingQueue.shift();
+        if (!task) continue;
+
+        try {
+            const device: IDevice | null = await deviceService.getFreeDevice();
+            if (!device) {
+                waitingQueue.unshift(task);  // Put the task back at the beginning of the queue if no device is available
+                break;  // Exit the loop if no devices are available
             }
-        } else {
-            break;
+            device.user = task.user || "";
+            device.comment = task.comment || "";
+            device.status = task.status || "locked";
+            await device.save();
+            task.res.json({
+                message: `设备 ${device.deviceIp} 由 ${device.user} 锁定.`,
+                device,
+            });
+        } catch (error) {
+            if (task.res.headersSent) {
+                console.error('Response was already sent.', error);
+            } else {
+                // @ts-ignore
+                task.res.status(500).json({ error: error.message });
+            }
         }
     }
 }
 
 
 const lockFreeDevice = (req: LockFreeDeviceRequest, res: Response) => {
-    let {user, comment, status} = req.body;
-    if (!user) {
-        user = "";
-    }
-    if (!comment) {
-        comment = ""
-    }
-    if (!status) {
-        status = "locked"
-    }
-    return requestQueue.push({res, user, comment, status});
+    const { user = "", comment = "", status = "locked" } = req.body;
+    requestQueue.push({ res, user, comment, status }, (err, device) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        if (device) {
+            res.json({
+                // @ts-ignore
+                message: `设备 ${device.deviceIp} 由 ${device.user} 锁定.`,
+                device,
+            });
+        }
+    });
 };
 
-
 const lockDeviceByIp = async (req: LockDeviceRequest, res: Response): Promise<void> => {
-    const {device_ip: deviceIp} = req.params;
-    const {user} = req.body;
+    const { device_ip: deviceIp } = req.params;
+    const { user } = req.body;
     try {
         const device: IDevice | null = await deviceService.lockDeviceByIp(deviceIp, user);
-        if (device) {
-            res.json({message: `设备 ${deviceIp} 由 ${user} 锁定.`, device});
-        } else {
-            res.status(404).json({error: "未找到设备"});
+        if (!device) {
+            res.status(404).json({ error: "未找到设备" });
+            return;
         }
-    } catch (error: any) {
-        res.status(500).json({error: error.message});
+        res.json({ message: `设备 ${deviceIp} 由 ${user} 锁定.`, device });
+    } catch (error) {
+        // @ts-ignore
+        res.status(500).json({ error: error.message });
     }
 };
 

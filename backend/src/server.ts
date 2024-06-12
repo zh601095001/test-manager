@@ -1,5 +1,11 @@
-import express from "express";
+import * as dotenv from 'dotenv';
 import path from 'path';
+
+dotenv.config({
+    path: path.join(__dirname, '.env')
+});
+
+import express from "express";
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import mongoose from 'mongoose';
@@ -15,9 +21,16 @@ import htmlReportRoutes from "./routes/htmlReportRoutes";
 import testEntryRoutes from "./routes/testEntryRoutes";
 import bodyParser from "body-parser";
 import reportSummaryRoutes from "./routes/reportSummaryRoutes";
+import morgan from "morgan"
+import cron from "node-cron"
+import {fetchDevicesAndUpdateFirmware} from "./schedulers/tasks"
+
+cron.schedule('* * * * *', async () => {
+    await fetchDevicesAndUpdateFirmware();
+});
 
 const app = express();
-
+app.use(morgan('combined'));
 app.use(bodyParser.json({limit: '1000mb'}));
 app.use(bodyParser.urlencoded({extended: true, limit: '1000mb'}));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -41,7 +54,7 @@ app.use(reportSummaryRoutes)
 mongoose.connect(config.db.uri,)
     .then(() => {
         console.log('MongoDB connected')
-        const server = app.listen(8080, () => console.log('Server is running on http://localhost:8080'));
+        const server = app.listen(8080, "0.0.0.0", () => console.log('Server is running on http://localhost:8080'));
         handleUpgrade(server);
     })
     .catch(err => console.error('MongoDB connection error:', err));

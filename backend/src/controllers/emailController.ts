@@ -1,0 +1,45 @@
+import transporter from "../config/mailConfig";
+import {Request, Response} from "express";
+import {getEmail} from "../services/emailServices"
+
+const sendEmail = async (req: Request, res: Response) => {
+    const {test_id} = req.body;
+    const infos = await getEmail(test_id)
+    const {
+        passed,
+        failed,
+        passRate,
+        remote_url,
+        html,
+        csv
+    } = infos
+    const emails = infos["emails"] as string[]
+    try {
+        let info = await transporter.sendMail({
+            from: `601095001@qq.com`,
+            to: emails,
+            subject: "自动化测试报告",
+            text: `自动化测试报告详见附件\n在线地址:${remote_url}\n通过:${passed}\n失败:${failed}\n通过率:${passRate}%`,
+            attachments: [
+                {
+                    filename: 'report.html', // 附件文件名
+                    content: html, // 附件内容
+                    contentType: 'text/html' // 附件内容类型
+                },
+                {
+                    filename: 'report.csv', // 附件文件名
+                    content: `\ufeff${csv}`, // 附件内容
+                    contentType: 'text/csv' // 附件内容类型
+                }
+            ]
+        });
+
+        console.log('Message sent: %s', info.messageId);
+        res.send(`Email sent to ${emails.join(",")}`);
+    } catch (error) {
+        console.error('Error sending email:', error);
+        res.status(500).send('Failed to send email.');
+    }
+};
+
+export default {sendEmail}

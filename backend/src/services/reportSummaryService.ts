@@ -4,7 +4,7 @@ import path from 'path';
 import axios from 'axios';
 import {exec as execCallback} from 'child_process';
 import * as tar from 'tar';
-import TestEntry from '../models/testEntry';
+import TestEntry, {ITestEntry} from '../models/testEntry';
 import {promisify} from 'util';
 import fileService from '../services/htmlReportService';
 // import pLimit from 'p-limit';
@@ -17,10 +17,6 @@ import {ENDPOINT} from "../config/minioConfig";
 // const limit = pLimit(10);
 const exec = promisify(execCallback);
 
-interface Entry {
-    test_id: string;
-    blob_urls: string[];
-}
 
 async function downloadFile(url: string, filepath: string): Promise<void> {
     const url_ = new URL(url)
@@ -67,7 +63,7 @@ async function compressDirectory(sourceDir: string, outputFilePath: string): Pro
 }
 
 async function downloadAndMergeReports(testId: string): Promise<{ message: string; url: string; remote_url: string }> {
-    const entry: Entry | null = await TestEntry.findOne({test_id: testId});
+    const entry: ITestEntry | null = await TestEntry.findOne({test_id: testId});
     if (!entry) {
         throw new Error('Test entry not found');
     }
@@ -121,6 +117,10 @@ async function downloadAndMergeReports(testId: string): Promise<{ message: strin
     fs.rmSync(downloadDir, {recursive: true, force: true});
     const remote_url = new URL(url)
     remote_url.hostname = "10.25.46.28"
+    entry.url = url
+    entry.remote_url = remote_url.href
+    entry.status = "merged"
+    await entry.save()
     return {
         message: 'Reports are processed',
         url,

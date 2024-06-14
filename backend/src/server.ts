@@ -22,14 +22,12 @@ import testEntryRoutes from "./routes/testEntryRoutes";
 import bodyParser from "body-parser";
 import reportSummaryRoutes from "./routes/reportSummaryRoutes";
 import morgan from "morgan"
-import cron from "node-cron"
-import {fetchDevicesAndUpdateFirmware} from "./schedulers/tasks"
+import runTask from "./schedulers/tasks"
+import emailRoutes from "./routes/emailRoutes";
 
-cron.schedule('* * * * *', async () => {
-    await fetchDevicesAndUpdateFirmware();
-});
 
 const app = express();
+
 app.use(morgan('combined'));
 app.use(bodyParser.json({limit: '1000mb'}));
 app.use(bodyParser.urlencoded({extended: true, limit: '1000mb'}));
@@ -50,11 +48,14 @@ app.use(userRouters)
 app.use('/files', fileRoutes);
 app.use(testEntryRoutes)
 app.use(reportSummaryRoutes)
+app.use(emailRoutes);
+
 
 mongoose.connect(config.db.uri,)
     .then(() => {
         console.log('MongoDB connected')
         const server = app.listen(8080, "0.0.0.0", () => console.log('Server is running on http://localhost:8080'));
         handleUpgrade(server);
+        runTask()
     })
     .catch(err => console.error('MongoDB connection error:', err));

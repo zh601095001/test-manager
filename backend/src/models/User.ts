@@ -6,6 +6,7 @@ export interface IUser extends Document {
     password: string;
     roles: string[];
     refreshToken: string | null;
+    email: string | null
 }
 
 // 创建 mongoose 模型的 Schema
@@ -14,7 +15,8 @@ const UserSchema = new mongoose.Schema<IUser>({
     username: {type: String, unique: true, required: true},
     password: {type: String, required: true},
     roles: [{type: String}],
-    refreshToken: {type: String, default: null}
+    refreshToken: {type: String, default: null},
+    email: {type: String, default: null},
 });
 
 // 创建 mongoose 模型

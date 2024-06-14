@@ -91,6 +91,37 @@ const getFileHash = (filePath: string): Promise<string> => {
         });
     });
 };
+
+
+async function findAndUpdateDocument(
+    query: Record<string, any>,
+    update: Record<string, any>,
+    delay: number,
+    options: mongoose.QueryOptions = { new: true }
+): Promise<User> {
+    const attemptUpdate = (): Promise<User | null> => {
+        return new Promise((resolve, reject) => {
+            User.findOneAndUpdate(query, update, options, (err, doc) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(doc);
+                }
+            });
+        });
+    };
+
+    while (true) {
+        const doc = await attemptUpdate();
+        if (doc) {
+            return doc;  // 找到并更新了文档，返回结果
+        } else {
+            // 没找到文档，等待一段时间后再次尝试
+            await new Promise(resolve => setTimeout(resolve, delay));
+            console.log('No document found, retrying...');
+        }
+    }
+}
 export {
     formatDuration,
     getDateInUTC8,

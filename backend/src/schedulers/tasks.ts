@@ -1,8 +1,8 @@
-import axios from 'axios';
-import {executeSSHCommand} from '../utils/utils';  // 引入SSH执行函数
+import {executeSSHCommand} from '../utils/utils'; // 引入SSH执行函数
 import Device from "../models/Device";
+import cron from "node-cron";
 
-export async function fetchDevicesAndUpdateFirmware() {
+async function fetchDevicesAndUpdateFirmware() {
     // 请求API获取设备列表
     const devices = await Device.find();
     for (const device of devices) {
@@ -24,4 +24,23 @@ export async function fetchDevicesAndUpdateFirmware() {
             await device.save()
         }
     }
+}
+async function clearAllLockedDevice(){
+    const devices = await Device.find({status:"locked"})
+    for (const device of devices){
+        device.status = "unlocked"
+        device.user = ""
+        device.lockTime = null
+        device.comment = null
+        await device.save()
+    }
+}
+
+export default function () {
+    cron.schedule('* * * * *', async () => {
+        await fetchDevicesAndUpdateFirmware();
+    });
+    cron.schedule('0 2 * * *', async () => {
+        await clearAllLockedDevice()
+    });
 }

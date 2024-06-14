@@ -4,7 +4,8 @@ interface LockFreeDeviceRequest extends Request {
     body: {
         user?: string;
         comment?: string
-        status?: "locked" | "unlocked" | "maintained"
+        status?: "locked" | "unlocked" | "maintained",
+        deviceName?: string
     };
 }
 

@@ -3,6 +3,7 @@ import {format} from 'date-fns';
 import {Client, ConnectConfig} from 'ssh2';
 import {createHash} from "crypto";
 import {createReadStream} from "fs";
+import mongoose, {Document, Model} from 'mongoose';
 
 function formatDuration(seconds: number) {
     const hours = Math.floor(seconds / 3600);
@@ -93,39 +94,39 @@ const getFileHash = (filePath: string): Promise<string> => {
 };
 
 
-async function findAndUpdateDocument(
+interface UpdateOptions extends mongoose.QueryOptions {
+    delay?: number;  // Optional delay between retries
+}
+
+// 通用的 findOneAndUpdate 工具函数
+async function findOneAndUpdate<T extends Document>(
+    model: Model<T>,
     query: Record<string, any>,
     update: Record<string, any>,
-    delay: number,
-    options: mongoose.QueryOptions = { new: true }
-): Promise<User> {
-    const attemptUpdate = (): Promise<User | null> => {
-        return new Promise((resolve, reject) => {
-            User.findOneAndUpdate(query, update, options, (err, doc) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(doc);
-                }
-            });
-        });
-    };
+    options: UpdateOptions
+): Promise<T | null> {
+    const { delay = 1000, ...mongooseOptions } = options;
 
     while (true) {
-        const doc = await attemptUpdate();
+        // 使用 findOneAndUpdate 并等待 Promise 解析
+        const doc: T | null = await model.findOneAndUpdate(query, update, { ...mongooseOptions, new: true }).exec();
         if (doc) {
-            return doc;  // 找到并更新了文档，返回结果
-        } else {
-            // 没找到文档，等待一段时间后再次尝试
+            return doc;  // Document found and updated, returning result
+        } else if (!mongooseOptions.upsert) {
+            // No document found and upsert is not enabled, retry after delay
             await new Promise(resolve => setTimeout(resolve, delay));
             console.log('No document found, retrying...');
+        } else {
+            return null;  // If upsert is enabled and still no document, no need to retry, return null
         }
     }
 }
+
 export {
     formatDuration,
     getDateInUTC8,
     formatDate,
     executeSSHCommand,
-    getFileHash
+    getFileHash,
+    findOneAndUpdate
 }

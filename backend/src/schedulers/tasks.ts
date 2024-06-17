@@ -1,6 +1,7 @@
-import {executeSSHCommand} from '../utils/utils'; // 引入SSH执行函数
+import {executeSSHCommand, getHarborLatestImageVersion} from '../utils/utils'; // 引入SSH执行函数
 import Device from "../models/Device";
 import cron from "node-cron";
+import harborService from "../services/harborService";
 
 async function fetchDevicesAndUpdateFirmware() {
     // 请求API获取设备列表
@@ -25,9 +26,10 @@ async function fetchDevicesAndUpdateFirmware() {
         }
     }
 }
-async function clearAllLockedDevice(){
-    const devices = await Device.find({status:"locked"})
-    for (const device of devices){
+
+async function clearAllLockedDevice() {
+    const devices = await Device.find({status: "locked"})
+    for (const device of devices) {
         device.status = "unlocked"
         device.user = ""
         device.lockTime = null
@@ -36,9 +38,30 @@ async function clearAllLockedDevice(){
     }
 }
 
+async function fetchHarborsAndUpdate() {
+    const harborHost = "repository.bxplc.cn";
+    const projectName = "auto";
+    const repositoryName = "xin3-theia-app";
+    const xin3TheiaLatestImageVersion = await getHarborLatestImageVersion({
+        harborHost,
+        projectName,
+        repositoryName,
+        username: "esuser",
+        password: "Esuser123123"
+    })
+    const fullImageName = `${harborHost}/${projectName}/${repositoryName}`;
+    await harborService.updateHarbor(repositoryName, {
+        info: {
+            version: xin3TheiaLatestImageVersion,
+            fullImageName
+        }
+    })
+}
+
 export default function () {
     cron.schedule('* * * * *', async () => {
         await fetchDevicesAndUpdateFirmware();
+        await fetchHarborsAndUpdate()
     });
     cron.schedule('0 2 * * *', async () => {
         await clearAllLockedDevice()

@@ -24,6 +24,7 @@ import reportSummaryRoutes from "./routes/reportSummaryRoutes";
 import morgan from "morgan"
 import runTask from "./schedulers/tasks"
 import emailRoutes from "./routes/emailRoutes";
+import harborRoutes from "./routes/harborRoutes";
 
 
 const app = express();
@@ -49,6 +50,7 @@ app.use('/files', fileRoutes);
 app.use(testEntryRoutes)
 app.use(reportSummaryRoutes)
 app.use(emailRoutes);
+app.use(harborRoutes)
 
 
 mongoose.connect(config.db.uri,)

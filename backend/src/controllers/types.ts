@@ -25,7 +25,8 @@ interface DeviceRequest extends Request {
     body: {
         deviceIp?: string;
         deviceMac?: string;
-        deviceName?: string
+        deviceName?: string;
+        force?: boolean
     };
 }
 

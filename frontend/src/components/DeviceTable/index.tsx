@@ -45,7 +45,7 @@ const DeviceTable: React.FC = () => {
         {
             title: '设备名称',
             dataIndex: 'deviceName',
-            editable: true,
+            editable: !!(roles && roles.includes("admin")),
         },
         {
             title: '设备ip地址',
@@ -54,6 +54,7 @@ const DeviceTable: React.FC = () => {
         {
             title: '设备mac地址',
             dataIndex: 'deviceMac',
+            editable: !!(roles && roles.includes("admin"))
         },
         {
             title: '固件版本',
@@ -70,15 +71,46 @@ const DeviceTable: React.FC = () => {
         {
             title: '使用者',
             dataIndex: 'user',
+            editable: !!(roles && roles.includes("admin"))
         },
         {
             title: '备注',
             dataIndex: 'comment',
-            editable: true
+            editable: !!(roles && roles.includes("admin"))
         },
         {
             title: '操作',
             dataIndex: 'operation',
+            filters: [
+                {
+                    text: '可用',
+                    value: 'unlocked',
+                },
+                {
+                    text: '其他用户锁定',
+                    value: 'locked',
+                },
+                {
+                    text: '维护',
+                    value: 'maintained',
+                },
+                {
+                    text: "自动化测试",
+                    value: "自动化测试"
+                }
+            ],
+            defaultFilteredValue: ["unlocked"],
+            onFilter: (value, record) => {
+                if (value === "自动化测试" && record.status === "locked") {
+                    return record.comment === value
+                } else if (value === "unlocked") {
+                    return record.status.indexOf(value as string) === 0 || record.user === user;
+                } else if (value === "locked") {
+                    return record.status.indexOf(value as string) === 0 && record.user !== user;
+                } else {
+                    return record.status.indexOf(value as string) === 0
+                }
+            },
             render: (_, record) => {
                 const {status} = record
                 const deviceUser = record.user
@@ -156,7 +188,9 @@ const DeviceTable: React.FC = () => {
         updateDevice({
             deviceIp: row.deviceIp,
             deviceName: row.deviceName,
-            comment: row.comment
+            comment: row.comment,
+            deviceMac: row.deviceMac,
+            user: row.user
         })
     };
 

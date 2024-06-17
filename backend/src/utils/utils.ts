@@ -4,6 +4,7 @@ import {Client, ConnectConfig} from 'ssh2';
 import {createHash} from "crypto";
 import {createReadStream} from "fs";
 import mongoose, {Document, Model} from 'mongoose';
+import axios from "axios";
 
 function formatDuration(seconds: number) {
     const hours = Math.floor(seconds / 3600);
@@ -105,11 +106,11 @@ async function findOneAndUpdate<T extends Document>(
     update: Record<string, any>,
     options: UpdateOptions
 ): Promise<T | null> {
-    const { delay = 1000, ...mongooseOptions } = options;
+    const {delay = 1000, ...mongooseOptions} = options;
 
     while (true) {
         // 使用 findOneAndUpdate 并等待 Promise 解析
-        const doc: T | null = await model.findOneAndUpdate(query, update, { ...mongooseOptions, new: true }).exec();
+        const doc: T | null = await model.findOneAndUpdate(query, update, {...mongooseOptions, new: true}).exec();
         if (doc) {
             return doc;  // Document found and updated, returning result
         } else if (!mongooseOptions.upsert) {
@@ -122,11 +123,47 @@ async function findOneAndUpdate<T extends Document>(
     }
 }
 
+
+async function getHarborLatestImageVersion(
+    {
+        harborHost,
+        projectName,
+        repositoryName,
+        username,
+        password
+    }: {
+        harborHost: string;
+        projectName: string;
+        repositoryName: string;
+        username: string;
+        password: string;
+    }
+) {
+    const url = `http://${harborHost}/api/v2.0/projects/${projectName}/repositories/${repositoryName}/artifacts?with_scan_overview=true`;
+    try {
+        const response = await axios.get(url, {
+            auth: {
+                username: username,
+                password: password
+            }
+        });
+        if (response.data.length > 0 && response.data[0].tags) {
+            return response.data[0].tags[0].name;
+        }
+        return null;
+    } catch (error) {
+        // @ts-ignore
+        console.error('Error fetching the latest image version:', error.message);
+        return null;
+    }
+}
+
 export {
     formatDuration,
     getDateInUTC8,
     formatDate,
     executeSSHCommand,
     getFileHash,
-    findOneAndUpdate
+    findOneAndUpdate,
+    getHarborLatestImageVersion
 }

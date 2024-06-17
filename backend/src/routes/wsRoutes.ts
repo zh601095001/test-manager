@@ -1,24 +1,34 @@
-import { WebSocketServer } from 'ws';
-import * as deviceService from '../services/deviceService';
-import { Server } from 'http';
+import {WebSocketServer} from 'ws';
+import deviceService from '../services/deviceService';
+import {Server} from 'http';
+import harborService from "../services/harborService";
 
-const wss = new WebSocketServer({ noServer: true });
+const wss = new WebSocketServer({noServer: true});
 
 wss.on('connection', ws => {
     deviceService.getAllDevices().then(devices => {
-        ws.send(JSON.stringify({ type: 'all-devices', devices }));
+        ws.send(JSON.stringify({type: 'all-devices', items: devices}));
+    });
+    harborService.getAllHarbors().then(harbors => {
+        ws.send(JSON.stringify({type: 'all-harbors', items: harbors}));
     });
 });
 
 function broadcastUpdate() {
-    deviceService.getAllDevices().then(devices => {
-        const message = JSON.stringify({ type: 'all-devices', devices });
+    // 抽象出广播消息的逻辑
+    const broadcast = async (type: string, fetchFunction: () => any) => {
+        const items = await fetchFunction();
+        const message = JSON.stringify({type, items});
         wss.clients.forEach(client => {
             if (client.readyState === 1) {
                 client.send(message);
             }
         });
-    });
+    };
+
+    // 分别对 devices 和 harbors 进行广播
+    broadcast('all-devices', deviceService.getAllDevices);
+    broadcast('all-harbors', harborService.getAllHarbors);
 }
 
 // 每隔 1 秒广播一次最新状态
@@ -32,4 +42,4 @@ function handleUpgrade(server: Server) {
     });
 }
 
-export { handleUpgrade };
+export {handleUpgrade};

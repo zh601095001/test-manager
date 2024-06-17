@@ -52,12 +52,13 @@ async function lockDeviceByIp(deviceIp: string, user: string) {
     return device;
 }
 
-async function releaseDeviceByIp(deviceIp: string) {
+async function releaseDeviceByIp(deviceIp: string, force: boolean) {
     const device = await Device.findOne({deviceIp});
     if (!device) {
         throw new Error('未找到设备！');
     }
-    if (device.status === "unlocked") {
+    // 不是强制释放，状态不为锁定时，报错
+    if (!force && device.status !== "locked") {
         throw new Error('设备未被锁定！');
     }
     const oldDevice = device.$clone()
@@ -70,7 +71,7 @@ async function getAllDevices() {
     return Device.find();
 }
 
-export {
+export default {
     getFreeDevice,
     lockDeviceByIp,
     releaseDeviceByIp,

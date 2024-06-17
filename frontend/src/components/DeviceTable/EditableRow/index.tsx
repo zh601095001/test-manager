@@ -20,6 +20,10 @@ export const EditableRow: React.FC<EditableRowProps> = ({index, ...props}) => {
             "maintained": "#fffa8e",
             "automated": "#e0e8f6"
         }[status]
+        // @ts-ignore
+        if (props.children[7].props.record.comment === "自动化测试") {
+            statusColor = "#e0e8f6"
+        }
     }
 
     return (

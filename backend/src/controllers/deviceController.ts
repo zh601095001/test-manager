@@ -1,81 +1,13 @@
 import express, {Request, Response} from "express";
-import * as deviceService from "../services/deviceService";
-import async from "async";
+import deviceService from "../services/deviceService";
 import Device from "../models/Device";
 import {DeviceRequest, LockDeviceRequest, LockFreeDeviceRequest, Task, UpdateDeviceRequest} from "./types";
 import {IDevice} from "../models/types";
 import {findOneAndUpdate, getDateInUTC8} from "../utils/utils";
 
-// const waitingQueue: Task[] = [];
-
-
-// const requestQueue = async.queue(async (task: Task, callback: (error?: Error | null, device?: IDevice | null) => void) => {
-//     try {
-//         const device: IDevice | null = await deviceService.getFreeDevice(task.status || "locked");
-//         if (!device) {
-//             waitingQueue.push(task);
-//             callback(new Error('无可用设备'), null);
-//             return;
-//         }
-//         device.user = task.user;
-//         device.comment = task.comment;
-//         // @ts-ignore
-//         device.status = task.status;
-//         await device.save();
-//         callback(null, device);
-//     } catch (error) {
-//         // @ts-ignore
-//         callback(error);
-//     }
-// }, 1);
-//
-//
-// async function resolveWaitingRequests(): Promise<void> {
-//     while (waitingQueue.length > 0) {
-//         const task = waitingQueue.shift();
-//         if (!task) continue;
-//
-//         try {
-//             const device: IDevice | null = await deviceService.getFreeDevice();
-//             if (!device) {
-//                 waitingQueue.unshift(task);  // Put the task back at the beginning of the queue if no device is available
-//                 break;  // Exit the loop if no devices are available
-//             }
-//             device.user = task.user || "";
-//             device.comment = task.comment || "";
-//             device.status = task.status || "locked";
-//             await device.save();
-//             task.res.json({
-//                 message: `设备 ${device.deviceIp} 由 ${device.user} 锁定.`,
-//                 device,
-//             });
-//         } catch (error) {
-//             if (task.res.headersSent) {
-//                 console.error('Response was already sent.', error);
-//             } else {
-//                 // @ts-ignore
-//                 task.res.status(500).json({ error: error.message });
-//             }
-//         }
-//     }
-// }
-
 
 const lockFreeDevice = async (req: LockFreeDeviceRequest, res: Response) => {
     const {user = "", comment = "", status = "locked", deviceName = "T320"} = req.body;
-    // requestQueue.push({ res, user, comment, status }, (err, device) => {
-    //     if (err) {
-    //         res.status(500).json({ error: err.message });
-    //         return;
-    //     }
-    //     if (device) {
-    //         res.json({
-    //             // @ts-ignore
-    //             message: `设备 ${device.deviceIp} 由 ${device.user} 锁定.`,
-    //             device,
-    //         });
-    //     }
-    // });
     const device = await findOneAndUpdate(Device, {
         deviceName: new RegExp(deviceName, "i"),
         status: "unlocked"
@@ -112,8 +44,9 @@ const lockDeviceByIp = async (req: LockDeviceRequest, res: Response): Promise<vo
 
 const releaseDeviceByIp = async (req: DeviceRequest, res: Response): Promise<void> => {
     const {device_ip: deviceIp} = req.params;
+    const {force = true} = req.body;
     try {
-        const device: IDevice | null = await deviceService.releaseDeviceByIp(deviceIp);
+        const device: IDevice | null = await deviceService.releaseDeviceByIp(deviceIp, force);
         if (device) {
             res.json({message: `设备 ${deviceIp} 释放成功，设备锁定用时：${device.duration}.`});
             // await resolveWaitingRequests();

@@ -2,8 +2,14 @@ import express, {Request, Response} from "express";
 import harborService from "../services/harborService";
 
 const getAllHarbors = async (req: Request, res: Response) => {
-    const allHarbors = harborService.getAllHarbors()
+    const allHarbors = await harborService.getAllHarbors()
     return res.json(allHarbors);
+}
+
+const getHarbor = async (req: Request, res: Response) => {
+    const {image_name} = req.params;
+    const harbor = await harborService.getHarbor(image_name)
+    return res.json(harbor);
 }
 
 const updateHarbor = async (req: Request, res: Response) => {
@@ -16,4 +22,5 @@ const updateHarbor = async (req: Request, res: Response) => {
 export default {
     getAllHarbors,
     updateHarbor,
+    getHarbor
 }

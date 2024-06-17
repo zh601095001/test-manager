@@ -5,6 +5,10 @@ async function getAllHarbors() {
     return Harbor.find();
 }
 
+async function getHarbor(imageName: string) {
+    return Harbor.findOne({imageName});
+}
+
 async function updateHarbor(imageName: string, data: object) {
     const options = {new: true, upsert: true}; // 设置 upsert 为 true 来启用插入或更新功能
     try {
@@ -18,5 +22,6 @@ async function updateHarbor(imageName: string, data: object) {
 
 export default {
     getAllHarbors,
-    updateHarbor
+    updateHarbor,
+    getHarbor
 }

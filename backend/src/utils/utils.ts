@@ -5,6 +5,7 @@ import {createHash} from "crypto";
 import {createReadStream} from "fs";
 import mongoose, {Document, Model} from 'mongoose';
 import axios from "axios";
+import {Request} from 'express';
 
 function formatDuration(seconds: number) {
     const hours = Math.floor(seconds / 3600);
@@ -99,16 +100,22 @@ interface UpdateOptions extends mongoose.QueryOptions {
     delay?: number;  // Optional delay between retries
 }
 
-// 通用的 findOneAndUpdate 工具函数
+
 async function findOneAndUpdate<T extends Document>(
     model: Model<T>,
     query: Record<string, any>,
     update: Record<string, any>,
-    options: UpdateOptions
+    options: UpdateOptions,
+    req: Request  // 添加了 req 参数来检查连接状态
 ): Promise<T | null> {
     const {delay = 1000, ...mongooseOptions} = options;
 
     while (true) {
+        if (req.socket.destroyed) {
+            console.log('客户端连接已断开，停止进程');
+            return null;  // 如果客户端连接已断开，则退出函数
+        }
+
         // 使用 findOneAndUpdate 并等待 Promise 解析
         const doc: T | null = await model.findOneAndUpdate(query, update, {...mongooseOptions, new: true}).exec();
         if (doc) {

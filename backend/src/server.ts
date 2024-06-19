@@ -25,6 +25,7 @@ import morgan from "morgan"
 import runTask from "./schedulers/tasks"
 import emailRoutes from "./routes/emailRoutes";
 import harborRoutes from "./routes/harborRoutes";
+import {errorHandler} from "./errorHandler/errorHandler";
 
 
 const app = express();
@@ -52,7 +53,7 @@ app.use(reportSummaryRoutes)
 app.use(emailRoutes);
 app.use(harborRoutes)
 
-
+app.use(errorHandler);
 mongoose.connect(config.db.uri,)
     .then(() => {
         console.log('MongoDB connected')

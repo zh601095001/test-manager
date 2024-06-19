@@ -1,6 +1,7 @@
 import {fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import {RootState} from "@/store";
 import {clearCredentials, setCredentials} from "@/features/auth/authSlice";
+import {message} from "antd";
 
 const baseQuery = fetchBaseQuery({
     baseUrl: '/api/',
@@ -34,7 +35,10 @@ export const baseQueryWithReauth = async (args, api, extraOptions) => {
             api.dispatch(clearCredentials())
             window.location.href = '/login';
         }
+    } else if (result.error && result.error.status !== 401) {
+        message.error(`Error: ${result.error.data || 'An error occurred'}`);
     }
+
 
     return result;
 };

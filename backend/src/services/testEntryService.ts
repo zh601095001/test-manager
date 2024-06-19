@@ -1,4 +1,4 @@
-import TestEntry, {ITestEntry} from "../models/testEntry";
+import TestEntry, {ITestEntry} from "../models/TestEntry";
 
 interface TestData {
     blob_urls?: string[];

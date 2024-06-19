@@ -4,7 +4,7 @@ import path from 'path';
 import axios from 'axios';
 import {exec as execCallback} from 'child_process';
 import * as tar from 'tar';
-import TestEntry, {ITestEntry} from '../models/testEntry';
+import TestEntry, {ITestEntry} from '../models/TestEntry';
 import {promisify} from 'util';
 import fileService from '../services/htmlReportService';
 // import pLimit from 'p-limit';

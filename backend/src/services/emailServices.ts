@@ -1,6 +1,6 @@
 import User from "../models/User"
-import TestEntry from "../models/testEntry";
-import TestReport from "../models/reportModel";
+import TestEntry from "../models/TestEntry";
+import TestReport from "../models/ReportModel";
 
 import Papa from "papaparse";
 

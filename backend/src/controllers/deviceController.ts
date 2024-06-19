@@ -9,16 +9,18 @@ import {findOneAndUpdate, getDateInUTC8} from "../utils/utils";
 const lockFreeDevice = async (req: LockFreeDeviceRequest, res: Response) => {
     const {user = "", comment = "", status = "locked", deviceName = "T320"} = req.body;
     const device = await findOneAndUpdate(Device, {
-        deviceName: new RegExp(deviceName, "i"),
-        status: "unlocked"
-    }, {
-        status,
-        comment,
-        user,
-        lockTime: getDateInUTC8()
-    }, {
-        delay: 2000
-    })
+            deviceName: new RegExp(deviceName, "i"),
+            status: "unlocked"
+        }, {
+            status,
+            comment,
+            user,
+            lockTime: getDateInUTC8()
+        }, {
+            delay: 2000
+        },
+        req
+    )
     res.json({
         message: `设备 ${device?.deviceIp} 由 ${device?.user} 锁定.`,
         device

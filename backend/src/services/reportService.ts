@@ -1,4 +1,4 @@
-import TestReport, { ITestReport } from "../models/reportModel";
+import TestReport, { ITestReport } from "../models/ReportModel";
 
 interface IReportService {
     mergeReports(testId: string, newReport: ITestReport): Promise<ITestReport>;

@@ -17,11 +17,14 @@ async function fetchDevicesAndUpdateFirmware() {
 
         try {
             const result = await executeSSHCommand(config, command);
+            if (device.deviceFirmware === "获取固件版本失败" && device.comment === "-" && device.user !== null){
+                device.status = "unlocked"
+            }
             device.deviceFirmware = result.stdout.trim()
             await device.save()
         } catch (error) {
             device.deviceFirmware = "获取固件版本失败"
-            // device.status = "maintained"
+            device.status = "maintained"
             await device.save()
         }
     }

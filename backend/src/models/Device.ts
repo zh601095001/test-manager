@@ -58,4 +58,3 @@ deviceSchema.set('toObject', {virtuals: true});
 const Device = mongoose.model<IDevice>('Device', deviceSchema);
 
 export default Device;
-1111111

@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 import {Client, ConnectConfig} from 'ssh2';
 import {createHash} from "crypto";
 import {createReadStream} from "fs";
-import mongoose, {Document, Model} from 'mongoose';
+import mongoose, {Document, Model, Query, Schema, UpdateQuery} from 'mongoose';
 import axios from "axios";
 import {Request} from 'express';
 
@@ -165,6 +165,10 @@ async function getHarborLatestImageVersion(
     }
 }
 
+function setPostUpdateMiddleware<T extends Document>(schema: Schema<T>, postUpdate: (result: any) => void): void {
+    schema.post(/update/i,postUpdate)
+}
+
 export {
     formatDuration,
     getDateInUTC8,
@@ -172,5 +176,6 @@ export {
     executeSSHCommand,
     getFileHash,
     findOneAndUpdate,
-    getHarborLatestImageVersion
+    getHarborLatestImageVersion,
+    setPostUpdateMiddleware
 }

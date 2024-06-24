@@ -185,4 +185,142 @@ router.delete('/:device_ip', deviceController.removeDeviceByIp);
  */
 router.put('/:device_ip', deviceController.updateDevice);
 
+/**
+ * @swagger
+ * /devices/ssh-config/{device_ip}:
+ *   post:
+ *     summary: Update SSH configuration for a device
+ *     description: Updates the SSH configuration details for a specific device using its IP address.
+ *     tags:
+ *       - 设备池
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               port:
+ *                 type: number
+ *                 description: SSH port number
+ *                 example: 22
+ *               username:
+ *                 type: string
+ *                 description: Username for SSH login
+ *                 example: admin
+ *               password:
+ *                 type: string
+ *                 description: Password for SSH login
+ *                 example: admin123
+ *     parameters:
+ *       - in: path
+ *         name: device_ip
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: IP address of the device
+ *     responses:
+ *       200:
+ *         description: SSH configuration updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "SSH configuration updated successfully"
+ */
+router.post('/ssh-config/:device_ip',deviceController.setSshConfig)
+
+/**
+ * @swagger
+ * /devices/refresh-firmware/{device_ip}:
+ *   post:
+ *     summary: Update refresh firmware configuration
+ *     description: Updates the firmware refresh settings for a specified device by IP.
+ *     tags: [Device Firmware]
+ *     parameters:
+ *       - in: path
+ *         name: device_ip
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The IP address of the device
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               flag:
+ *                 type: boolean
+ *                 description: Enable or disable firmware refresh
+ *               refreshScript:
+ *                 type: string
+ *                 description: Script to refresh the firmware
+ *     responses:
+ *       200:
+ *         description: Firmware refresh configuration updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Error updating firmware refresh configuration
+ */
+router.post('/refresh-firmware/:device_ip',deviceController.setRefreshFirmware)
+
+
+/**
+ * @swagger
+ * /devices/switch-firmware/{device_ip}:
+ *   post:
+ *     summary: Update switch firmware configuration
+ *     description: Updates the firmware switch settings for a specified device by IP.
+ *     tags: [Device Firmware]
+ *     parameters:
+ *       - in: path
+ *         name: device_ip
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The IP address of the device
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firmwareList:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: List of available firmware versions
+ *               switchScript:
+ *                 type: string
+ *                 description: Script to switch the firmware
+ *               currentFirmware:
+ *                 type: string
+ *                 description: Currently active firmware version
+ *     responses:
+ *       200:
+ *         description: Firmware switch configuration updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Error updating switch firmware configuration
+ */
+router.post('/switch-firmware/:device_ip',deviceController.setSwitchFirmware)
+
 export default router;

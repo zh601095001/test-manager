@@ -1,7 +1,14 @@
 import express, {Request, Response} from "express";
 import deviceService from "../services/deviceService";
 import Device from "../models/Device";
-import {DeviceRequest, LockDeviceRequest, LockFreeDeviceRequest, Task, UpdateDeviceRequest} from "./types";
+import {
+    DeviceRequest,
+    LockDeviceRequest,
+    LockFreeDeviceRequest,
+    setDeviceSshRequest,
+    Task,
+    UpdateDeviceRequest
+} from "./types";
 import {IDevice} from "../models/types";
 import {findOneAndUpdate, getDateInUTC8} from "../utils/utils";
 
@@ -102,7 +109,7 @@ const removeDeviceByIp = async (req: DeviceRequest, res: Response): Promise<void
 
 const updateDevice = async (req: UpdateDeviceRequest, res: Response): Promise<any> => {
     const {device_ip: deviceIp} = req.params;
-    const {deviceName, deviceMac, deviceFirmware, user, comment, status} = req.body;
+    const {deviceName, deviceMac, deviceFirmware, user, comment, status, updateFirmwareFlag} = req.body;
 
     // Check for the required fields, assuming deviceIp is essential for identifying the device
     if (!deviceIp) {
@@ -117,6 +124,7 @@ const updateDevice = async (req: UpdateDeviceRequest, res: Response): Promise<an
             ...(user && {user}),
             ...(comment && {comment}),
             ...(status && {status}),
+            ...(updateFirmwareFlag && {updateFirmwareFlag})
         };
 
         // Find the device by IP and update it with new values
@@ -136,6 +144,47 @@ const updateDevice = async (req: UpdateDeviceRequest, res: Response): Promise<an
     }
 };
 
+const setSshConfig = async (req: setDeviceSshRequest, res: Response) => {
+    const {device_ip: deviceIp} = req.params;
+    try{
+        await deviceService.setSshConfig(deviceIp, req.body)
+        res.status(200).json({
+            message: "SSH configuration updated successfully",
+        });
+    }catch (e){
+        // @ts-ignore
+        res.status(500).json({ message: `Error updating SSH configuration:${e.message}` });
+    }
+}
+
+const setRefreshFirmware = async (req: Request, res: Response): Promise<void> => {
+    const {device_ip: deviceIp} = req.params;
+    const refreshConfig = req.body;
+    try {
+        await deviceService.setRefreshFirmware(deviceIp, refreshConfig);
+        res.status(200).json({
+            message: "RefreshFirmware configuration updated successfully",
+        });
+    } catch (error) {
+        // @ts-ignore
+        res.status(500).send(error.message);
+    }
+};
+
+const setSwitchFirmware = async (req: Request, res: Response): Promise<void> => {
+    const {device_ip: deviceIp} = req.params;
+    const firmwareData = req.body;
+    try {
+        await deviceService.setSwitchFirmware(deviceIp, firmwareData);
+        res.status(200).json({
+            message: "SwitchFirmware configuration updated successfully",
+        });
+    } catch (error) {
+        // @ts-ignore
+        res.status(500).send(error.message);
+    }
+};
+
 
 export {
     lockFreeDevice,
@@ -144,5 +193,8 @@ export {
     getAllDevices,
     addDevice,
     removeDeviceByIp,
-    updateDevice
+    updateDevice,
+    setSshConfig,
+    setRefreshFirmware,
+    setSwitchFirmware
 }

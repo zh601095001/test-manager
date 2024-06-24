@@ -4,31 +4,58 @@ import cron from "node-cron";
 import harborService from "../services/harborService";
 
 async function fetchDevicesAndUpdateFirmware() {
-    // 请求API获取设备列表
-    const devices = await Device.find();
+    const devices = await Device.find({ updateFirmware: { $ne: false } });
+
     for (const device of devices) {
+        console.log(`开始处理设备: ${device.id}, IP: ${device.deviceIp}`);
         const config = {
             host: device.deviceIp,
             port: 22,
             username: 'root',  // 替换为实际的SSH用户名
             password: 'root'   // 替换为实际的SSH密码
         };
-        const command = "dpkg -l txpf | grep txpf | awk '{print $3}'\n";  // 替换为获取固件版本的命令
+        const command = "dpkg -l txpf | grep txpf | awk '{print $3}'";
 
         try {
             const result = await executeSSHCommand(config, command);
-            if (device.deviceFirmware === "获取固件版本失败" && device.comment === "-" && device.user !== null){
-                device.status = "unlocked"
-            }
+            // 由系统自动触发的设备获取到ip后恢复到非锁定状态
+            await Device.findOneAndUpdate(
+                {
+                    _id: device._id,
+                    comment: "-",
+                    user: null,
+                    status: "maintained"
+                },
+                {
+                    $set: {
+                        status: "unlocked"
+                    }
+                },
+                { new: true }
+            );
             device.deviceFirmware = result.stdout.trim()
             await device.save()
         } catch (error) {
+            // 非锁定状态的设备在获取ip失败后才设置为维护状态
+            await Device.findOneAndUpdate(
+                {
+                    _id: device._id,
+                    status: { $ne: "locked" }
+                },
+                {
+                    $set: {
+                        comment: "-",
+                        status: "maintained"
+                    }
+                },
+                { new: true }
+            );
             device.deviceFirmware = "获取固件版本失败"
-            device.status = "maintained"
             await device.save()
         }
     }
 }
+
 
 async function clearAllLockedDevice() {
     const devices = await Device.find({status: "locked"})

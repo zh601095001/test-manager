@@ -1,5 +1,5 @@
 "use client"
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {selectDevices} from "@/features/websocket/websocketSlice";
 import {Button, Modal, Popconfirm, Table, Form, Input} from "antd"
@@ -11,6 +11,8 @@ import {
     useReleaseDeviceByIpMutation,
     useRemoveDeviceByIpMutation, useUpdateDeviceMutation
 } from "@/services/devicePool";
+import {SettingOutlined} from "@ant-design/icons";
+import DeviceSettingModal from "@/components/DeviceSettingModal";
 
 // 定义设备对象的接口
 interface Device {
@@ -23,6 +25,7 @@ interface Device {
     user: string;
     comment: string;
     status: "locked" | "unlocked" | "maintained";
+    updateFirmwareFlag: boolean;
 }
 
 
@@ -40,7 +43,13 @@ const DeviceTable: React.FC = () => {
     const [form] = Form.useForm()
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentMaintainDeviceIp, setCurrentMaintainDeviceIp] = useState("")
-
+    const [isDeviceSettingModalOpen, setDeviceSettingModalOpen] = useState(false);
+    const [currentRecord, setCurrentRecord] = useState<Device | null>(null)
+    useEffect(() => {
+        if (currentRecord) {
+            setCurrentRecord(allDevices[allDevices.findIndex(device => device.deviceIp === currentRecord.deviceIp)])
+        }
+    }, [allDevices]);
     const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
         {
             title: '设备名称',
@@ -59,6 +68,17 @@ const DeviceTable: React.FC = () => {
         {
             title: '固件版本',
             dataIndex: 'deviceFirmware',
+            render: (value, record) => {
+                return <div>{value}
+                    <SettingOutlined
+                        style={{marginLeft: 10}}
+                        onClick={() => {
+                            setCurrentRecord(record as Device)
+                            setDeviceSettingModalOpen(true)
+                        }}
+                    />
+                </div>
+            }
         },
         {
             title: '锁定起始时间',
@@ -266,6 +286,11 @@ const DeviceTable: React.FC = () => {
                     </Form.Item>
                 </Form>
             </Modal>
+            <DeviceSettingModal
+                open={isDeviceSettingModalOpen}
+                setOpen={setDeviceSettingModalOpen}
+                record={currentRecord}
+            />
         </div>
     );
 };

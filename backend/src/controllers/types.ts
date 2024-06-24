@@ -44,6 +44,7 @@ interface UpdateDeviceRequest extends Request {
         status?: "locked" | "unlocked" | "maintained"; // Optional status of the device
         lockTime?: Date | string;  // Optional lock time, could be Date or string depending on how you handle dates
         duration?: string;      // Optional duration for how long the device has been locked
+        updateFirmwareFlag?: boolean
     };
 }
 
@@ -55,10 +56,22 @@ interface Task {
     res: Response;
 }
 
+interface setDeviceSshRequest extends Request {
+    params: {
+        device_ip: string;
+    };
+    body: {
+        port?: number;
+        username?: string;
+        password?: string;
+    };
+}
+
 export {
     LockFreeDeviceRequest,
     LockDeviceRequest,
     DeviceRequest,
     UpdateDeviceRequest,
+    setDeviceSshRequest,
     Task
 }

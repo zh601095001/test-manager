@@ -1,6 +1,6 @@
 import Device from "../models/Device";
 import {getDateInUTC8} from "../utils/utils";
-import {IDevice} from "../models/types";
+import {IDevice, ISSHConfig} from "../models/types";
 
 type Status = "locked" | "unlocked" | "maintained"
 
@@ -16,26 +16,6 @@ async function setDeviceUnlocked(device: IDevice) {
     device.user = null;
     device.comment = "-";
     await device.save();
-}
-
-async function getFreeDevice(status: Status = "locked") {
-    const freeDevices = await Device.find({status: "unlocked"});
-    if (freeDevices.length > 0) {
-        const randomDevice = freeDevices[Math.floor(Math.random() * freeDevices.length)];
-        await setDeviceLocked(randomDevice, status)
-        return randomDevice;
-    }
-    return null;
-}
-
-async function getFreeDeviceWithName(deviceName: string) {
-    const freeDevices = await Device.find({status: "unlocked", deviceName: {$regex: deviceName, $options: 'i'}});
-    if (freeDevices.length > 0) {
-        const randomDevice = freeDevices[Math.floor(Math.random() * freeDevices.length)];
-        await setDeviceLocked(randomDevice)
-        return randomDevice;
-    }
-    return null;
 }
 
 async function lockDeviceByIp(deviceIp: string, user: string) {
@@ -71,10 +51,93 @@ async function getAllDevices() {
     return Device.find();
 }
 
+async function setSshConfig(deviceIp: string, {
+    port,
+    username,
+    password
+}: ISSHConfig) {
+    const device = await Device.findOne({deviceIp})
+    if (!device) {
+        throw new Error('未找到设备！');
+    }
+    device.sshConfig = device.sshConfig || {port: 22, username: "root", password: "root"};
+    if (port) {
+        device.sshConfig.port = port
+    }
+    if (username) {
+        device.sshConfig.username = username;
+    }
+    if (password) {
+        device.sshConfig.password = password;
+    }
+    await device.save()
+}
+
+interface IRefreshFirmwareConfig {
+    flag: boolean;
+    refreshScript: string;
+}
+
+interface ISwitchFirmwareConfig {
+    firmwareList: string[];
+    switchScript: string;
+    currentFirmware: string;
+}
+
+const setRefreshFirmware = async (deviceIp: string, refreshFirmwareConfig: IRefreshFirmwareConfig): Promise<any> => {
+    try {
+        const device = await Device.findOne({ deviceIp });
+        if (!device) {
+            throw new Error('Device not found');
+        }
+
+        device.refreshFirmware = device.refreshFirmware || {};
+
+        if (refreshFirmwareConfig.flag !== undefined) {
+            device.refreshFirmware.flag = refreshFirmwareConfig.flag;
+        }
+        if (refreshFirmwareConfig.refreshScript !== undefined) {
+            device.refreshFirmware.refreshScript = refreshFirmwareConfig.refreshScript;
+        }
+        await device.save();
+    } catch (error) {
+        // @ts-ignore
+        throw new Error('Error updating refresh firmware settings: ' + error.message);
+    }
+};
+
+
+const setSwitchFirmware = async (deviceIp: string, firmwareData: ISwitchFirmwareConfig): Promise<any> => {
+    try {
+        const device = await Device.findOne({ deviceIp });
+        if (!device) {
+            throw new Error('Device not found');
+        }
+
+        device.switchFirmware = device.switchFirmware || {};
+
+        if (firmwareData.firmwareList !== undefined) {
+            device.switchFirmware.firmwareList = firmwareData.firmwareList;
+        }
+        if (firmwareData.switchScript !== undefined) {
+            device.switchFirmware.switchScript = firmwareData.switchScript;
+        }
+        if (firmwareData.currentFirmware !== undefined) {
+            device.switchFirmware.currentFirmware = firmwareData.currentFirmware;
+        }
+        await device.save();
+    } catch (error) {
+        // @ts-ignore
+        throw new Error('Error updating switch firmware: ' + error.message);
+    }
+};
+
+
 export default {
-    getFreeDevice,
     lockDeviceByIp,
     releaseDeviceByIp,
     getAllDevices,
-    getFreeDeviceWithName
+    setSshConfig,
+    setRefreshFirmware,
+    setSwitchFirmware
 };

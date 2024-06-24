@@ -2,6 +2,22 @@ import mongoose, {Schema, Document} from "mongoose";
 import {IDevice} from "./types";
 import {formatDate, formatDuration} from "../utils/utils";
 
+const sshConfigSchema: Schema = new Schema({
+    port: {type: Number},
+    username: {type: String},
+    password: {type: String}
+}, {_id: false, default: {port: 22, username: "root", password: "root"}});
+
+const refreshFirmwareSchema: Schema = new Schema({
+    flag: {type: Boolean},
+    refreshScript: {type: String}
+}, {_id: false, default: {flag: false}});
+
+const switchFirmwareSchema: Schema = new Schema({
+    firmwareList: [{type: String}],
+    switchScript: {type: String},
+    currentFirmware: {type: String}
+},{_id: false,});
 
 const deviceSchema: Schema = new Schema({
     deviceName: {type: String, required: true},
@@ -12,6 +28,10 @@ const deviceSchema: Schema = new Schema({
     user: {type: String},
     comment: {type: String, default: "-"},
     status: {type: String, default: "unlocked"},
+    updateFirmwareFlag: {type: Boolean, default: false},
+    sshConfig: sshConfigSchema,
+    refreshFirmware: refreshFirmwareSchema,
+    switchFirmware: switchFirmwareSchema
 });
 
 deviceSchema.virtual('duration').get(function () {

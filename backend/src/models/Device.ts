@@ -14,10 +14,15 @@ const refreshFirmwareSchema: Schema = new Schema({
 }, {_id: false, default: {flag: false}});
 
 const switchFirmwareSchema: Schema = new Schema({
-    firmwareList: [{type: String}],
+    firmwareList: [
+        {
+            fileName: {type: String},
+            objectName: {type: String}
+        }
+    ],
     switchScript: {type: String},
-    currentFirmware: {type: String}
-},{_id: false,});
+    currentFileName: {type: String}
+}, {_id: false,});
 
 const deviceSchema: Schema = new Schema({
     deviceName: {type: String, required: true},

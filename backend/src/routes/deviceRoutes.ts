@@ -239,7 +239,7 @@ router.post('/ssh-config/:device_ip',deviceController.setSshConfig)
  *   post:
  *     summary: Update refresh firmware configuration
  *     description: Updates the firmware refresh settings for a specified device by IP.
- *     tags: [Device Firmware]
+ *     tags: [设备固件版本]
  *     parameters:
  *       - in: path
  *         name: device_ip
@@ -282,7 +282,7 @@ router.post('/refresh-firmware/:device_ip',deviceController.setRefreshFirmware)
  *   post:
  *     summary: Update switch firmware configuration
  *     description: Updates the firmware switch settings for a specified device by IP.
- *     tags: [Device Firmware]
+ *     tags: [设备固件版本]
  *     parameters:
  *       - in: path
  *         name: device_ip
@@ -300,14 +300,21 @@ router.post('/refresh-firmware/:device_ip',deviceController.setRefreshFirmware)
  *               firmwareList:
  *                 type: array
  *                 items:
- *                   type: string
- *                 description: List of available firmware versions
+ *                   type: object
+ *                   properties:
+ *                     fileName:
+ *                       type: string
+ *                       description: Name of the firmware file
+ *                     objectName:
+ *                       type: string
+ *                       description: Object name in the storage system
+ *                 description: List of firmware files and their storage identifiers
  *               switchScript:
  *                 type: string
  *                 description: Script to switch the firmware
- *               currentFirmware:
+ *               currentFileName:
  *                 type: string
- *                 description: Currently active firmware version
+ *                 description: Currently active firmware file name
  *     responses:
  *       200:
  *         description: Firmware switch configuration updated successfully
@@ -321,6 +328,125 @@ router.post('/refresh-firmware/:device_ip',deviceController.setRefreshFirmware)
  *       500:
  *         description: Error updating switch firmware configuration
  */
-router.post('/switch-firmware/:device_ip',deviceController.setSwitchFirmware)
+router.post('/switch-firmware/:device_ip', deviceController.setSwitchFirmware)
 
+/**
+ * @swagger
+ * /devices/{deviceIp}/switch-firmware:
+ *   post:
+ *     summary: Adds a firmware item to the device's firmware list.
+ *     description: Adds a firmware item based on the device IP.
+ *     tags:
+ *       - [设备固件版本]
+ *     parameters:
+ *       - in: path
+ *         name: deviceIp
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The IP address of the device.
+ *       - in: body
+ *         name: firmwareListItem
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             fileName:
+ *               type: string
+ *             objectName:
+ *               type: string
+ *     responses:
+ *       200:
+ *         description: Successfully added the firmware item.
+ *       500:
+ *         description: Error message if the addition fails.
+ */
+router.post('/devices/:device_ip/switch-firmware', deviceController.addSwitchFirmwareListItem);
+
+/**
+ * @swagger
+ * /devices/{deviceIp}/switch-firmware/{fileName}:
+ *   delete:
+ *     summary: Removes a specific firmware item from the device's firmware list.
+ *     description: Removes a firmware item based on the device IP and file name.
+ *     tags:
+ *       - [设备固件版本]
+ *     parameters:
+ *       - in: path
+ *         name: deviceIp
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The IP address of the device.
+ *       - in: path
+ *         name: fileName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The file name of the firmware to be removed.
+ *     responses:
+ *       200:
+ *         description: Successfully removed the firmware item.
+ *       500:
+ *         description: Error message if the removal fails.
+ */
+router.delete('/devices/:device_ip/switch-firmware/:filename', deviceController.rmSwitchFirmwareListItem);
+
+/**
+ * @swagger
+ * /devices/{deviceIp}/switch-firmware/current:
+ *   put:
+ *     summary: Sets the current firmware item for the device.
+ *     description: Sets the current firmware item based on the device IP and the specified file name.
+ *     tags:
+ *       - [设备固件版本]
+ *     parameters:
+ *       - in: path
+ *         name: deviceIp
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The IP address of the device.
+ *       - in: body
+ *         name: currentFileName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The file name of the firmware to be set as current.
+ *     responses:
+ *       200:
+ *         description: Successfully set the current firmware item.
+ *       500:
+ *         description: Error message if the operation fails.
+ */
+router.put('/devices/:device_ip/switch-firmware/current', deviceController.setCurrentSwitchFirmwareListItem);
+
+/**
+ * @swagger
+ * /devices/{deviceIp}/switch-firmware/script:
+ *   put:
+ *     summary: Sets the switch script for the device's firmware.
+ *     description: Sets the switch script for a device based on the device IP.
+ *     tags:
+ *       - [设备固件版本]
+ *     parameters:
+ *       - in: path
+ *         name: deviceIp
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The IP address of the device.
+ *       - in: body
+ *         name: switchScript
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The script to set for the switch firmware.
+ *     responses:
+ *       200:
+ *         description: Successfully set the switch script.
+ *       500:
+ *         description: Error message if the setting fails.
+ */
+router.put('/devices/:device_ip/switch-firmware/script', deviceController.setSwitchScript);
 export default router;

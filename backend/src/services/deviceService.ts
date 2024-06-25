@@ -79,14 +79,17 @@ interface IRefreshFirmwareConfig {
 }
 
 interface ISwitchFirmwareConfig {
-    firmwareList: string[];
-    switchScript: string;
-    currentFirmware: string;
+    firmwareList?: Array<{
+        fileName: string;
+        objectName: string;
+    }>;
+    switchScript?: string;
+    currentFileName?: string;
 }
 
 const setRefreshFirmware = async (deviceIp: string, refreshFirmwareConfig: IRefreshFirmwareConfig): Promise<any> => {
     try {
-        const device = await Device.findOne({ deviceIp });
+        const device = await Device.findOne({deviceIp});
         if (!device) {
             throw new Error('Device not found');
         }
@@ -109,7 +112,7 @@ const setRefreshFirmware = async (deviceIp: string, refreshFirmwareConfig: IRefr
 
 const setSwitchFirmware = async (deviceIp: string, firmwareData: ISwitchFirmwareConfig): Promise<any> => {
     try {
-        const device = await Device.findOne({ deviceIp });
+        const device = await Device.findOne({deviceIp});
         if (!device) {
             throw new Error('Device not found');
         }
@@ -119,18 +122,72 @@ const setSwitchFirmware = async (deviceIp: string, firmwareData: ISwitchFirmware
         if (firmwareData.firmwareList !== undefined) {
             device.switchFirmware.firmwareList = firmwareData.firmwareList;
         }
+
         if (firmwareData.switchScript !== undefined) {
             device.switchFirmware.switchScript = firmwareData.switchScript;
         }
-        if (firmwareData.currentFirmware !== undefined) {
-            device.switchFirmware.currentFirmware = firmwareData.currentFirmware;
+
+        if (firmwareData.currentFileName !== undefined) {
+            device.switchFirmware.currentFileName = firmwareData.currentFileName;
         }
+
         await device.save();
     } catch (error) {
         // @ts-ignore
         throw new Error('Error updating switch firmware: ' + error.message);
     }
 };
+
+const addSwitchFirmwareListItem = async (deviceIp: string, item: {
+    fileName: string,
+    objectName: string
+}) => {
+    const device = await Device.findOne({deviceIp});
+    if (!device) {
+        throw new Error('Device not found');
+    }
+    device.switchFirmware = device.switchFirmware || {};
+    device.switchFirmware.firmwareList = device.switchFirmware.firmwareList || []
+    device.switchFirmware.firmwareList.push(item)
+    await device.save()
+}
+
+const rmSwitchFirmwareListItem = async (deviceIp: string, fileName: string) => {
+    const device = await Device.findOne({deviceIp});
+    if (!device) {
+        throw new Error('Device not found');
+    }
+    device.switchFirmware = device.switchFirmware || {};
+    device.switchFirmware.firmwareList = device.switchFirmware.firmwareList || []
+    device.switchFirmware.firmwareList = device.switchFirmware.firmwareList.filter(item => {
+        return item.fileName !== fileName
+    })
+    await device.save()
+}
+
+const setCurrentSwitchFirmwareListItem = async (deviceIp: string, currentFileName: string) => {
+    const device = await Device.findOne({deviceIp});
+    if (!device) {
+        throw new Error('Device not found');
+    }
+    device.switchFirmware = device.switchFirmware || {};
+    if (device.switchFirmware.firmwareList && device.switchFirmware.firmwareList.some(item => item.fileName === currentFileName)) {
+        device.switchFirmware.currentFileName = currentFileName
+        await device.save()
+    } else {
+        throw new Error('File not found');
+    }
+}
+
+const setSwitchScript = async (deviceIp: string, switchScript: string) => {
+    const device = await Device.findOne({deviceIp});
+    if (!device) {
+        throw new Error('Device not found');
+    }
+    device.switchFirmware = device.switchFirmware || {};
+    device.switchFirmware.switchScript = switchScript
+    await device.save()
+}
 
 
 export default {
@@ -139,5 +196,9 @@ export default {
     getAllDevices,
     setSshConfig,
     setRefreshFirmware,
-    setSwitchFirmware
+    setSwitchFirmware,
+    addSwitchFirmwareListItem,
+    rmSwitchFirmwareListItem,
+    setCurrentSwitchFirmwareListItem,
+    setSwitchScript
 };

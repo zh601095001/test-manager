@@ -12,9 +12,12 @@ interface IRefreshFirmware {
 }
 
 interface ISwitchFirmware {
-    firmwareList: string[];
+    firmwareList:  Array<{
+        fileName: string;
+        objectName: string;
+    }>;
     switchScript: string;
-    currentFirmware: string;
+    currentFileName: string;
 }
 
 interface IDevice extends Document {

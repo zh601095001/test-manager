@@ -37,8 +37,10 @@ class FileService {
         return createHash('md5').update(buffer).digest('hex');
     }
 
-    async uploadFile(file: Express.Multer.File): Promise<{ objectName: string, url: string }> {
-        const bucketName = BUCKET_NAME;
+    async uploadFile(file: Express.Multer.File, bucketName: string = BUCKET_NAME): Promise<{
+        objectName: string,
+        url: string
+    }> {
         const fileExtension = path.extname(file.originalname);
         const objectName = this.getFileMd5(file.buffer);
 
@@ -55,17 +57,17 @@ class FileService {
 
         // @ts-ignore
         await this.minioClient.putObject(bucketName, objectName, file.buffer, metaData);
-        const url = await this.getFileUrl(objectName);
+        const url = await this.getFileUrl(objectName, bucketName);
         return {objectName, url};
     }
 
-    private async getFileUrl(objectName: string): Promise<string> {
-        return await this.minioClient.presignedGetObject(BUCKET_NAME, objectName, 24 * 60 * 60);
+    private async getFileUrl(objectName: string, bucketName: string = BUCKET_NAME): Promise<string> {
+        return await this.minioClient.presignedGetObject(bucketName, objectName, 24 * 60 * 60);
     }
 
-    async downloadFile(objectName: string, res: Express.Response): Promise<void> {
+    async downloadFile(objectName: string, res: Express.Response, bucketName: string = BUCKET_NAME): Promise<void> {
 
-        const stream = await this.minioClient.getObject(BUCKET_NAME, objectName);
+        const stream = await this.minioClient.getObject(bucketName, objectName);
         stream.pipe(<NodeJS.WritableStream>res);
     }
 }

@@ -14,10 +14,17 @@ const router = Router();
 
 /**
  * @swagger
- * /files:
+ * /files/{bucketName}:
  *   post:
  *     summary: Upload a file
  *     tags: [Files]
+ *     parameters:
+ *       - in: path
+ *         name: bucketName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the bucket where the file will be stored
  *     requestBody:
  *       required: true
  *       content:
@@ -36,15 +43,21 @@ const router = Router();
  *       500:
  *         description: Error uploading file
  */
-router.post('/', upload.single('file'), fileController.uploadFile);
+router.post('/:bucketName', upload.single('file'), fileController.uploadFile);
 
 /**
  * @swagger
- * /files/{objectName}:
+ * /files/{bucketName}/{objectName}:
  *   get:
  *     summary: Download a file
  *     tags: [Files]
  *     parameters:
+ *       - in: path
+ *         name: bucketName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the bucket where the file is stored
  *       - in: path
  *         name: objectName
  *         required: true
@@ -57,6 +70,6 @@ router.post('/', upload.single('file'), fileController.uploadFile);
  *       500:
  *         description: Error downloading file
  */
-router.get('/:objectName', fileController.downloadFile);
+router.get('/:bucketName/:objectName', fileController.downloadFile);
 
 export default router;

@@ -1,8 +1,8 @@
 import Device from "../models/Device";
 import {getDateInUTC8} from "../utils/utils";
 import {IDevice, ISSHConfig} from "../models/types";
+import {IRefreshFirmwareConfig, ISwitchFirmwareConfig, Status} from "./types";
 
-type Status = "locked" | "unlocked" | "maintained"
 
 async function setDeviceLocked(device: IDevice, status: Status = "locked") {
     device.status = status;
@@ -73,19 +73,15 @@ async function setSshConfig(deviceIp: string, {
     await device.save()
 }
 
-interface IRefreshFirmwareConfig {
-    flag: boolean;
-    refreshScript: string;
+async function getSshConfig(deviceIp: string) {
+    const device = await Device.findOne({deviceIp})
+    if (!device) {
+        throw new Error('未找到设备！');
+    }
+    device.sshConfig = device.sshConfig || {port: 22, username: "root", password: "root"};
+    return device.sshConfig
 }
 
-interface ISwitchFirmwareConfig {
-    firmwareList?: Array<{
-        fileName: string;
-        objectName: string;
-    }>;
-    switchScript?: string;
-    currentFileName?: string;
-}
 
 const setRefreshFirmware = async (deviceIp: string, refreshFirmwareConfig: IRefreshFirmwareConfig): Promise<any> => {
     try {
@@ -127,8 +123,8 @@ const setSwitchFirmware = async (deviceIp: string, firmwareData: ISwitchFirmware
             device.switchFirmware.switchScript = firmwareData.switchScript;
         }
 
-        if (firmwareData.currentFileName !== undefined) {
-            device.switchFirmware.currentFileName = firmwareData.currentFileName;
+        if (firmwareData.currentObjectName !== undefined) {
+            device.switchFirmware.currentObjectName = firmwareData.currentObjectName;
         }
 
         await device.save();
@@ -148,11 +144,14 @@ const addSwitchFirmwareListItem = async (deviceIp: string, item: {
     }
     device.switchFirmware = device.switchFirmware || {};
     device.switchFirmware.firmwareList = device.switchFirmware.firmwareList || []
+    if (device.switchFirmware.firmwareList.some((firmware) => firmware.objectName === item.objectName)) {
+        throw new Error("Firmware already exists");
+    }
     device.switchFirmware.firmwareList.push(item)
     await device.save()
 }
 
-const rmSwitchFirmwareListItem = async (deviceIp: string, fileName: string) => {
+const rmSwitchFirmwareListItem = async (deviceIp: string, objectName: string) => {
     const device = await Device.findOne({deviceIp});
     if (!device) {
         throw new Error('Device not found');
@@ -160,19 +159,19 @@ const rmSwitchFirmwareListItem = async (deviceIp: string, fileName: string) => {
     device.switchFirmware = device.switchFirmware || {};
     device.switchFirmware.firmwareList = device.switchFirmware.firmwareList || []
     device.switchFirmware.firmwareList = device.switchFirmware.firmwareList.filter(item => {
-        return item.fileName !== fileName
+        return item.objectName !== objectName
     })
     await device.save()
 }
 
-const setCurrentSwitchFirmwareListItem = async (deviceIp: string, currentFileName: string) => {
+const setCurrentSwitchFirmwareListItem = async (deviceIp: string, objectName: string) => {
     const device = await Device.findOne({deviceIp});
     if (!device) {
         throw new Error('Device not found');
     }
     device.switchFirmware = device.switchFirmware || {};
-    if (device.switchFirmware.firmwareList && device.switchFirmware.firmwareList.some(item => item.fileName === currentFileName)) {
-        device.switchFirmware.currentFileName = currentFileName
+    if (device.switchFirmware.firmwareList && device.switchFirmware.firmwareList.some(item => item.objectName === objectName)) {
+        device.switchFirmware.currentObjectName = objectName
         await device.save()
     } else {
         throw new Error('File not found');
@@ -189,16 +188,25 @@ const setSwitchScript = async (deviceIp: string, switchScript: string) => {
     await device.save()
 }
 
+const getSwitchInfo = async (deviceIp: string) => {
+    const device = await Device.findOne({deviceIp});
+    if (!device) {
+        throw new Error('Device not found');
+    }
+    return device?.switchFirmware
+}
 
 export default {
     lockDeviceByIp,
     releaseDeviceByIp,
     getAllDevices,
     setSshConfig,
+    getSshConfig,
     setRefreshFirmware,
     setSwitchFirmware,
     addSwitchFirmwareListItem,
     rmSwitchFirmwareListItem,
     setCurrentSwitchFirmwareListItem,
-    setSwitchScript
+    setSwitchScript,
+    getSwitchInfo,
 };

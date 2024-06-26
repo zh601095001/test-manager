@@ -13,6 +13,7 @@ import {
 } from "@/services/devicePool";
 import {SettingOutlined} from "@ant-design/icons";
 import DeviceSettingModal from "@/components/DeviceSettingModal";
+import DevicesSettingModal from "@/components/DevicesSettingModal";
 
 // 定义设备对象的接口
 interface Device {
@@ -44,6 +45,7 @@ const DeviceTable: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentMaintainDeviceIp, setCurrentMaintainDeviceIp] = useState("")
     const [isDeviceSettingModalOpen, setDeviceSettingModalOpen] = useState(false);
+    const [isDevicesSettingModalOpen, setDevicesSettingModalOpen] = useState(false)
     const [currentRecord, setCurrentRecord] = useState<Device | null>(null)
     useEffect(() => {
         if (currentRecord) {
@@ -66,7 +68,12 @@ const DeviceTable: React.FC = () => {
             editable: !!(roles && roles.includes("admin"))
         },
         {
-            title: '固件版本',
+            title: (
+                <div>
+                    <span>固件版本</span>
+                    <SettingOutlined style={{marginLeft: 8}} onClick={() => setDevicesSettingModalOpen(true)}/>
+                </div>
+            ),
             dataIndex: 'deviceFirmware',
             render: (value, record) => {
                 return <div>{value}
@@ -99,7 +106,7 @@ const DeviceTable: React.FC = () => {
             editable: !!(roles && roles.includes("admin"))
         },
         {
-            title: '操作',
+            title: "操作",
             dataIndex: 'operation',
             filters: [
                 {
@@ -290,6 +297,11 @@ const DeviceTable: React.FC = () => {
                 open={isDeviceSettingModalOpen}
                 setOpen={setDeviceSettingModalOpen}
                 record={currentRecord}
+            />
+            <DevicesSettingModal
+                devices={allDevices}
+                setOpen={setDevicesSettingModalOpen}
+                open={isDevicesSettingModalOpen}
             />
         </div>
     );

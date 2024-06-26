@@ -17,7 +17,7 @@ interface ISwitchFirmware {
         objectName: string;
     }>;
     switchScript: string;
-    currentFileName: string;
+    currentObjectName: string;
 }
 
 interface IDevice extends Document {

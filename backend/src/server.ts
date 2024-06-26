@@ -10,7 +10,8 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import mongoose from 'mongoose';
 import config from './config/default';
-import deviceRoutes from './routes/deviceRoutes';
+import devicesRoutes from './routes/devicesRoutes';
+import deviceRoute from "./routes/deviceRoute";
 import {handleUpgrade} from './routes/wsRoutes';
 import passport from "passport";
 import userRouters from "./routes/userRouters";
@@ -45,7 +46,8 @@ app.use('/reports', express.static('uploads'));
 const swaggerDocs = swaggerJsDoc(config.swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-app.use('/devices', deviceRoutes);
+app.use('/devices', devicesRoutes);
+app.use("/device",deviceRoute);
 app.use(userRouters)
 app.use('/files', fileRoutes);
 app.use(testEntryRoutes)

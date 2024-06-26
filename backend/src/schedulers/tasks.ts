@@ -4,20 +4,28 @@ import cron from "node-cron";
 import harborService from "../services/harborService";
 
 async function fetchDevicesAndUpdateFirmware() {
-    const devices = await Device.find({ updateFirmware: { $ne: false } });
+    const devices = await Device.find({"refreshFirmware.flag": true});
 
     for (const device of devices) {
+        const {port, username, password} = device.sshConfig
+        if (!port || !username || !password) {
+            console.error("ssh配置不完整")
+        }
+        const {refreshScript} = device.refreshFirmware || {}
+        if (!refreshScript) {
+            console.log("刷新脚本不存在")
+        }
         console.log(`开始处理设备: ${device.id}, IP: ${device.deviceIp}`);
         const config = {
             host: device.deviceIp,
-            port: 22,
-            username: 'root',  // 替换为实际的SSH用户名
-            password: 'root'   // 替换为实际的SSH密码
+            port,
+            username,  // 替换为实际的SSH用户名
+            password   // 替换为实际的SSH密码
         };
-        const command = "dpkg -l txpf | grep txpf | awk '{print $3}'";
 
         try {
-            const result = await executeSSHCommand(config, command);
+            const result = await executeSSHCommand(config, refreshScript);
+            console.log(result)
             // 由系统自动触发的设备获取到ip后恢复到非锁定状态
             await Device.findOneAndUpdate(
                 {
@@ -31,7 +39,7 @@ async function fetchDevicesAndUpdateFirmware() {
                         status: "unlocked"
                     }
                 },
-                { new: true }
+                {new: true}
             );
             device.deviceFirmware = result.stdout.trim()
             await device.save()
@@ -40,7 +48,7 @@ async function fetchDevicesAndUpdateFirmware() {
             await Device.findOneAndUpdate(
                 {
                     _id: device._id,
-                    status: { $ne: "locked" }
+                    status: {$ne: "locked"}
                 },
                 {
                     $set: {
@@ -48,7 +56,7 @@ async function fetchDevicesAndUpdateFirmware() {
                         status: "maintained"
                     }
                 },
-                { new: true }
+                {new: true}
             );
             device.deviceFirmware = "获取固件版本失败"
             await device.save()

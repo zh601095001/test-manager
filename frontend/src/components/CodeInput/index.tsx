@@ -15,6 +15,7 @@ interface CodeEditorFormProps {
     onChange?: (value: string) => void;
     defaultLanguage?: string; // 默认脚本语言
     disableLanguageSwitch?: boolean; // 是否禁用语言切换
+    onSave: ({code}: { code: string }) => Promise<any>
 }
 
 const getLanguageExtension = (language: string): Extension => {
@@ -45,6 +46,7 @@ const getShebang = (language: string): string => {
 const CodeEditorForm: React.FC<CodeEditorFormProps> = ({
                                                            value = '',
                                                            onChange = () => null,
+                                                           onSave,
                                                            defaultLanguage = 'javascript', // 默认脚本语言
                                                            disableLanguageSwitch = false // 是否禁用语言切换
                                                        }) => {
@@ -100,12 +102,7 @@ const CodeEditorForm: React.FC<CodeEditorFormProps> = ({
             setIsSaving(true);
             message.loading({content: '保存中...', key: 'save'});
             // 调用后端接口保存代码
-            // await axios.post('/api/save', { code: codeValue });
-            await new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(undefined)
-                }, 2000)
-            })
+            await onSave({code: codeValue})
             message.success({content: '代码保存成功!', key: 'save', duration: 2});
             setSaveStatus(true); // 保存成功后显示已保存状态
         } catch (error) {

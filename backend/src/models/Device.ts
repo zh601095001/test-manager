@@ -21,7 +21,7 @@ const switchFirmwareSchema: Schema = new Schema({
         }
     ],
     switchScript: {type: String},
-    currentFileName: {type: String}
+    currentObjectName: {type: String}
 }, {_id: false,});
 
 const deviceSchema: Schema = new Schema({

@@ -39,7 +39,7 @@ export const devicePoolApi = createApi({
             }),
         }),
         updateDevice: builder.mutation({
-            query: ({deviceIp,...extras}: {
+            query: ({deviceIp, ...extras}: {
                 deviceIp: string;       // Optional new IP address for the device
                 deviceMac?: string;      // Optional new MAC address for the device
                 deviceName?: string;     // Optional new name for the device
@@ -55,15 +55,83 @@ export const devicePoolApi = createApi({
                 body: extras
             }),
         }),
+        setSshConfig: builder.mutation({
+            query: ({deviceIp, ...extras}: {
+                deviceIp: string;
+                port?: number;
+                username?: string;
+                password?: string
+            }) => ({
+                url: `device/${deviceIp}/ssh-config`,
+                method: "PUT",
+                body: extras
+            })
+        }),
+        setRefreshFirmware: builder.mutation({
+            query: ({deviceIp, ...extras}: {
+                deviceIp: string;
+                flag?: boolean;
+                refreshScript?: string;
+            }) => ({
+                url: `device/${deviceIp}/refresh-firmware`,
+                method: "PUT",
+                body: extras
+            })
+        }),
+        addSwitchFirmwareListItem: builder.mutation({
+            query: ({deviceIp, ...extras}: {
+                deviceIp: string;
+                fileName?: string;
+                objectName?: string;
+            }) => ({
+                url: `device/${deviceIp}/switch-firmware`,
+                method: "PUT",
+                body: extras
+            })
+        }),
+        rmSwitchFirmwareListItem: builder.mutation({
+            query: ({deviceIp, ...extras}: {
+                deviceIp: string;
+                objectName?: string;
+            }) => ({
+                url: `device/${deviceIp}/switch-firmware`,
+                method: "DELETE",
+                body: extras
+            })
+        }),
+        setCurrentSwitchFirmwareListItem: builder.mutation({
+            query: ({deviceIp, ...extras}: {
+                deviceIp: string;
+                objectName?: string;
+            }) => ({
+                url: `device/${deviceIp}/switch-firmware/current`,
+                method: "PUT",
+                body: extras
+            })
+        }),
+        setSwitchScript: builder.mutation({
+            query: ({deviceIp, ...extras}: {
+                deviceIp: string;
+                switchScript?: string;
+            }) => ({
+                url: `device/${deviceIp}/switch-firmware/script`,
+                method: "PUT",
+                body: extras
+            })
+        }),
     }),
 })
 
-// Export hooks for usage in functional components, which are
-// auto-generated based on the defined endpoints
 export const {
     useLockByDeviceIpMutation,
     useReleaseDeviceByIpMutation,
     useRemoveDeviceByIpMutation,
     useAddDeviceMutation,
-    useUpdateDeviceMutation
+    useUpdateDeviceMutation,
+    useSetSshConfigMutation,
+    useSetRefreshFirmwareMutation,
+    useAddSwitchFirmwareListItemMutation,
+    useRmSwitchFirmwareListItemMutation,
+    useSetCurrentSwitchFirmwareListItemMutation,
+    useSetSwitchScriptMutation
 } = devicePoolApi

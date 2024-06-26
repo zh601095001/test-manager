@@ -6,7 +6,6 @@ import {
     LockDeviceRequest,
     LockFreeDeviceRequest,
     setDeviceSshRequest,
-    Task,
     UpdateDeviceRequest
 } from "./types";
 import {IDevice} from "../models/types";
@@ -44,8 +43,7 @@ const lockDeviceByIp = async (req: LockDeviceRequest, res: Response): Promise<vo
             return;
         }
         res.json({message: `设备 ${deviceIp} 由 ${user} 锁定.`, device});
-    } catch (error) {
-        // @ts-ignore
+    } catch (error: any) {
         res.status(500).json({error: error.message});
     }
 };
@@ -111,7 +109,6 @@ const updateDevice = async (req: UpdateDeviceRequest, res: Response): Promise<an
     const {device_ip: deviceIp} = req.params;
     const {deviceName, deviceMac, deviceFirmware, user, comment, status, updateFirmwareFlag} = req.body;
 
-    // Check for the required fields, assuming deviceIp is essential for identifying the device
     if (!deviceIp) {
         return res.status(400).json({error: '设备IP是必须的！'});
     }
@@ -151,9 +148,18 @@ const setSshConfig = async (req: setDeviceSshRequest, res: Response) => {
         res.status(200).json({
             message: "SSH configuration updated successfully",
         });
-    } catch (e) {
-        // @ts-ignore
+    } catch (e: any) {
         res.status(500).json({message: `Error updating SSH configuration:${e.message}`});
+    }
+}
+
+const getSshConfig = async (req: setDeviceSshRequest, res: Response) => {
+    const {device_ip: deviceIp} = req.params;
+    try {
+        const sshConfig = await deviceService.getSshConfig(deviceIp)
+        res.status(200).json(sshConfig);
+    } catch (e: any) {
+        res.status(500).json({message: `Error get SSH configuration:${e.message}`});
     }
 }
 
@@ -165,9 +171,10 @@ const setRefreshFirmware = async (req: Request, res: Response): Promise<void> =>
         res.status(200).json({
             message: "RefreshFirmware configuration updated successfully",
         });
-    } catch (error) {
-        // @ts-ignore
-        res.status(500).send(error.message);
+    } catch (error: any) {
+        res.status(500).send({
+            message: error.message
+        });
     }
 };
 
@@ -179,9 +186,10 @@ const setSwitchFirmware = async (req: Request, res: Response): Promise<void> => 
         res.status(200).json({
             message: "SwitchFirmware configuration updated successfully",
         });
-    } catch (error) {
-        // @ts-ignore
-        res.status(500).send(error.message);
+    } catch (error: any) {
+        res.status(500).send({
+            message: error.message
+        });
     }
 };
 
@@ -193,35 +201,39 @@ const addSwitchFirmwareListItem = async (req: Request, res: Response): Promise<v
         res.status(200).json({
             message: "Add switch firmware list item successfully",
         });
-    } catch (error) {
-        // @ts-ignore
-        res.status(500).send(error.message);
+    } catch (error: any) {
+        res.status(500).send({
+            message: error.message
+        });
     }
 }
 
 const rmSwitchFirmwareListItem = async (req: Request, res: Response): Promise<void> => {
-    const {device_ip: deviceIp,filename} = req.params;
+    const {device_ip: deviceIp} = req.params;
+    const {objectName} = req.body
     try {
-        await deviceService.rmSwitchFirmwareListItem(deviceIp, filename);
+        await deviceService.rmSwitchFirmwareListItem(deviceIp, objectName);
         res.status(200).json({
             message: "Remove switch firmware list item successfully",
         });
-    } catch (error) {
-        // @ts-ignore
-        res.status(500).send(error.message);
+    } catch (error: any) {
+        res.status(500).send({
+            message: error.message
+        });
     }
 }
 const setCurrentSwitchFirmwareListItem = async (req: Request, res: Response): Promise<void> => {
     const {device_ip: deviceIp} = req.params;
-    const {currentFileName} = req.body;
+    const {objectName} = req.body;
     try {
-        await deviceService.setCurrentSwitchFirmwareListItem(deviceIp, currentFileName);
+        await deviceService.setCurrentSwitchFirmwareListItem(deviceIp, objectName);
         res.status(200).json({
             message: "Set current switch firmware successfully",
         });
-    } catch (error) {
-        // @ts-ignore
-        res.status(500).send(error.message);
+    } catch (error: any) {
+        res.status(500).send({
+            message: error.message
+        });
     }
 }
 const setSwitchScript = async (req: Request, res: Response): Promise<void> => {
@@ -232,11 +244,25 @@ const setSwitchScript = async (req: Request, res: Response): Promise<void> => {
         res.status(200).json({
             message: "Set switch firmware script successfully",
         });
-    } catch (error) {
-        // @ts-ignore
-        res.status(500).send(error.message);
+    } catch (error: any) {
+        res.status(500).send({
+            message: error.message
+        });
     }
 }
+
+const getSwitchInfo = async (req: Request, res: Response): Promise<void> => {
+    const {device_ip: deviceIp} = req.params;
+    try {
+        const switchInfo = await deviceService.getSwitchInfo(deviceIp);
+        res.status(200).json(switchInfo)
+    } catch (error: any) {
+        res.status(500).send({
+            message: error.message
+        });
+    }
+}
+
 export {
     lockFreeDevice,
     lockDeviceByIp,
@@ -246,10 +272,12 @@ export {
     removeDeviceByIp,
     updateDevice,
     setSshConfig,
+    getSshConfig,
     setRefreshFirmware,
     setSwitchFirmware,
     addSwitchFirmwareListItem,
     rmSwitchFirmwareListItem,
     setCurrentSwitchFirmwareListItem,
-    setSwitchScript
+    setSwitchScript,
+    getSwitchInfo
 }

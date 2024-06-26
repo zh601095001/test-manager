@@ -34,7 +34,7 @@ function DeviceSettingModal({record, setOpen, ...modalProps}: DeviceSettingModal
         {
             key: '2',
             label: '固件版本刷新',
-            children: <UpdateDeviceFirmwareForm/>,
+            children: <UpdateDeviceFirmwareForm record={record}/>,
         },
         {
             key: '3',

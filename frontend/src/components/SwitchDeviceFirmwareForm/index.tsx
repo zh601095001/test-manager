@@ -1,7 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {Form, message, Select, Upload, UploadProps} from "antd";
+import {Button, Form, message, Select, Upload, UploadProps} from "antd";
 import {InboxOutlined} from "@ant-design/icons";
 import CodeEditorForm from "@/components/CodeInput";
+import {
+    useAddSwitchFirmwareListItemMutation,
+    useRmSwitchFirmwareListItemMutation, useSetCurrentSwitchFirmwareListItemMutation,
+    useSetSwitchScriptMutation
+} from "@/services/devicePool";
 
 const {Dragger} = Upload;
 const layout = {
@@ -11,40 +16,50 @@ const layout = {
 
 function SwitchDeviceFirmwareForm({record}: { record: any }) {
     const [form] = Form.useForm()
+    const [addSwitchFirmwareListItem] = useAddSwitchFirmwareListItemMutation()
+    const [rmSwitchFirmwareListItem] = useRmSwitchFirmwareListItemMutation()
+    const [setSwitchScript] = useSetSwitchScriptMutation()
+    const [setCurrentSwitchFirmwareListItem] = useSetCurrentSwitchFirmwareListItemMutation()
     const props: UploadProps = {
         name: 'file',
         multiple: true,
         action: '/api/files/firmwares',
-        onChange:async (info)=> {
+        onChange: async (info) => {
             const {status} = info.file;
-            if (status !== 'uploading') {
-                console.log(info.file, info.fileList);
-            }
-            if (status === 'done') {
+            if (status === "removed") {
+                const {name: fileName, response: {objectName}} = info.file
+                await rmSwitchFirmwareListItem({
+                    deviceIp: record.deviceIp,
+                    objectName
+                })
+            } else if (status === 'done') {
+                const {name: fileName, response: {objectName}} = info.file
+                await addSwitchFirmwareListItem({
+                    deviceIp: record.deviceIp,
+                    objectName,
+                    fileName
+                })
                 await message.success(`${info.file.name} file uploaded successfully.`);
             } else if (status === 'error') {
                 await message.error(`${info.file.name} file upload failed.`);
             }
         },
-        onDrop(e) {
-            console.log('Dropped files', e.dataTransfer.files);
-        },
     };
     let switchScript = ""
-    let currentFirmware = ""
+    let currentObjectName = ""
     let firmwareList = []
     if (record.switchFirmware) {
         const switchFirmware = record.switchFirmware
         if (switchFirmware.switchScript) {
             switchScript = switchFirmware.switchScript
         }
-        if (switchFirmware.currentFirmware) {
-            currentFirmware = switchFirmware.currentFirmware
+        if (switchFirmware.currentObjectName) {
+            currentObjectName = switchFirmware.currentObjectName
         }
         if (switchFirmware.firmwareList) {
             firmwareList = switchFirmware.firmwareList.map((value: any) => ({
-                value,
-                label: value
+                value: value.objectName,
+                label: value.fileName
             }))
         }
     }
@@ -52,16 +67,55 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
         form.setFieldValue("updateScript", switchScript)
     }, [switchScript]);
     const handleValuesChange = async (changedValues: any, allValues: any) => {
-        console.log(changedValues)
+        const {currentObjectName} = changedValues
+        if (currentObjectName) {
+            const response = await setCurrentSwitchFirmwareListItem({
+                deviceIp: record.deviceIp,
+                objectName: currentObjectName
+            }).unwrap()
+            message.success(response.message)
+        }
+    }
+    const handleFirmwareListDelete = async (e: any, option: any) => {
+        e.stopPropagation()
+        const {value: objectName, label: fileName} = option
+        await rmSwitchFirmwareListItem({
+            deviceIp: record.deviceIp,
+            objectName
+        })
+        await message.success(`${fileName}删除成功.`);
+    }
+    const handleUpdateScriptSave = async ({code}: { code: string }) => {
+        await setSwitchScript({
+            deviceIp: record.deviceIp,
+            switchScript: code
+        })
     }
     return (
         <div>
             <Form form={form} {...layout} onValuesChange={handleValuesChange}>
-                <Form.Item label="切换固件" name="currentFirmware">
+                <Form.Item label="切换固件" name="currentObjectName">
                     <Select
-                        defaultValue={currentFirmware}
+                        defaultValue={currentObjectName}
                         // style={{width: 200}}
                         options={firmwareList}
+                        optionFilterProp="label"
+                        showSearch={true}
+                        optionRender={(option, info: { index: number }) => {
+                            return (
+                                <div
+                                    style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}
+                                >
+                                    <span>{option.label}</span>
+                                    <Button
+                                        type="primary"
+                                        danger
+                                        size="middle"
+                                        onClick={(e) => handleFirmwareListDelete(e, option)}
+                                    >删除</Button>
+                                </div>
+                            )
+                        }}
                     />
                 </Form.Item>
                 <Form.Item label="固件上传">
@@ -76,7 +130,11 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
                     </Dragger>
                 </Form.Item>
                 <Form.Item name="updateScript" label="固件安装脚本">
-                    <CodeEditorForm defaultLanguage="shell" disableLanguageSwitch={true}/>
+                    <CodeEditorForm
+                        defaultLanguage="shell"
+                        disableLanguageSwitch={true}
+                        onSave={handleUpdateScriptSave}
+                    />
                 </Form.Item>
             </Form>
         </div>

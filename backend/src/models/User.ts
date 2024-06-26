@@ -6,7 +6,11 @@ export interface IUser extends Document {
     password: string;
     roles: string[];
     refreshToken: string | null;
-    email: string | null
+    email: string | null;
+    avatar: string;
+    settings: {
+        deviceFilter: string[];
+    }
 }
 
 // 创建 mongoose 模型的 Schema
@@ -17,6 +21,10 @@ const UserSchema = new mongoose.Schema<IUser>({
     roles: [{type: String}],
     refreshToken: {type: String, default: null},
     email: {type: String, default: null},
+    avatar: {type: String},
+    settings: {
+        deviceFilters: [{type: Array}],
+    }
 });
 
 // 创建 mongoose 模型

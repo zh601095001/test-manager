@@ -1,0 +1,9 @@
+.switchDeviceFirmwareFormItemSwitchFirmwareSelect{
+  :global{
+    .ant-form-item-control-input-content{
+      .ant-select{
+        width: 85%;
+      }
+    }
+  }
+}

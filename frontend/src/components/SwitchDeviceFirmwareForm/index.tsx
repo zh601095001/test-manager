@@ -7,6 +7,7 @@ import {
     useRmSwitchFirmwareListItemMutation, useSetCurrentSwitchFirmwareListItemMutation,
     useSetSwitchScriptMutation
 } from "@/services/devicePool";
+import styles from "./index.module.scss"
 
 const {Dragger} = Upload;
 const layout = {
@@ -94,29 +95,32 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
     return (
         <div>
             <Form form={form} {...layout} onValuesChange={handleValuesChange}>
-                <Form.Item label="切换固件" name="currentObjectName">
-                    <Select
-                        defaultValue={currentObjectName}
-                        // style={{width: 200}}
-                        options={firmwareList}
-                        optionFilterProp="label"
-                        showSearch={true}
-                        optionRender={(option, info: { index: number }) => {
-                            return (
-                                <div
-                                    style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}
-                                >
-                                    <span>{option.label}</span>
-                                    <Button
-                                        type="primary"
-                                        danger
-                                        size="middle"
-                                        onClick={(e) => handleFirmwareListDelete(e, option)}
-                                    >删除</Button>
-                                </div>
-                            )
-                        }}
-                    />
+                <Form.Item label="切换固件" className={styles.switchDeviceFirmwareFormItemSwitchFirmwareSelect}>
+                    <Form.Item name="currentObjectName" wrapperCol={{span: 24}}>
+                        <Select
+                            defaultValue={currentObjectName}
+                            // style={{width: 200}}
+                            options={firmwareList}
+                            optionFilterProp="label"
+                            showSearch={true}
+                            optionRender={(option, info: { index: number }) => {
+                                return (
+                                    <div
+                                        style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}
+                                    >
+                                        <span>{option.label}</span>
+                                        <Button
+                                            type="primary"
+                                            danger
+                                            size="middle"
+                                            onClick={(e) => handleFirmwareListDelete(e, option)}
+                                        >删除</Button>
+                                    </div>
+                                )
+                            }}
+                        />
+                        <Button type="primary" style={{marginLeft: 10}}>重新安装</Button>
+                    </Form.Item>
                 </Form.Item>
                 <Form.Item label="固件上传">
                     <Dragger {...props}>

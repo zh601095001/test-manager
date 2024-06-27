@@ -1,3 +1,5 @@
+import path from "node:path";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     async rewrites() {
@@ -9,6 +11,9 @@ const nextConfig = {
                 destination: 'http://192.168.6.94:8888/api/:path*',
             },
         ]
+    },
+    sassOptions: {
+        includePaths: [path.join(import.meta.url, 'styles')],
     },
     webpack: (config, context) => {
         config.watchOptions = {

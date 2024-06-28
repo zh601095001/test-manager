@@ -26,8 +26,10 @@ import morgan from "morgan"
 import runTask from "./schedulers/tasks"
 import emailRoutes from "./routes/emailRoutes";
 import harborRoutes from "./routes/harborRoutes";
+import concurrentTaskRoutes from "./routes/concurrentTaskRoutes";
 import {errorHandler} from "./errorHandler/errorHandler";
-
+import startConcurrentTaskAgenda from "./schedulers/concurrentTask";
+import startSequentialTaskAgenda from "./schedulers/sequentialTask";
 
 const app = express();
 
@@ -47,20 +49,26 @@ const swaggerDocs = swaggerJsDoc(config.swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use('/devices', devicesRoutes);
-app.use("/device",deviceRoute);
+app.use("/device", deviceRoute);
 app.use(userRouters)
 app.use('/files', fileRoutes);
 app.use(testEntryRoutes)
 app.use(reportSummaryRoutes)
 app.use(emailRoutes);
 app.use(harborRoutes)
-
+app.use("/concurrent", concurrentTaskRoutes)
 app.use(errorHandler);
 mongoose.connect(config.db.uri,)
     .then(() => {
         console.log('MongoDB connected')
         const server = app.listen(8080, "0.0.0.0", () => console.log('Server is running on http://localhost:8080'));
         handleUpgrade(server);
+        startConcurrentTaskAgenda().catch((err: Error) => {
+            console.error(err)
+        })
+        startSequentialTaskAgenda().catch((err: Error) => {
+            console.error(err)
+        })
         runTask()
     })
     .catch(err => console.error('MongoDB connection error:', err));

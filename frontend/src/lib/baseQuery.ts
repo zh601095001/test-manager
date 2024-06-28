@@ -36,7 +36,8 @@ export const baseQueryWithReauth = async (args, api, extraOptions) => {
             window.location.href = '/login';
         }
     } else if (result.error && result.error.status !== 401) {
-        message.error(`Error: ${result.error.data || 'An error occurred'}`);
+        // @ts-ignore
+        message.error(`Error: ${result?.error?.data?.message || 'An error occurred'}`);
     }
 
 

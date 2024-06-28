@@ -345,12 +345,12 @@ router.put('/:device_ip/switch-firmware/script', deviceController.setSwitchScrip
  *               objectName:
  *                 type: string
  *                 description: The object name in the storage system
- *         switchScript:
- *           type: string
- *           description: The script used to switch firmware
- *         currentObjectName:
- *           type: string
- *           description: The name of the currently active firmware file
+ *               switchScript:
+ *                 type: string
+ *                 description: The script used to switch firmware
+ *               currentObjectName:
+ *                 type: string
+ *                 description: The name of the currently active firmware file
  */
 router.get("/:device_ip/switch-firmware", deviceController.getSwitchInfo);
 

@@ -6,6 +6,8 @@ import {createReadStream} from "fs";
 import mongoose, {Document, Model, Query, Schema, UpdateQuery} from 'mongoose';
 import axios from "axios";
 import {Request} from 'express';
+import {EventEmitter} from 'events';
+import * as Buffer from "node:buffer";
 
 function formatDuration(seconds: number) {
     const hours = Math.floor(seconds / 3600);
@@ -31,6 +33,11 @@ interface SSHResult {
     error: string | null;
 }
 
+interface Config extends ConnectConfig {
+    executionPath?: string
+    runtimeEnv?: Map<string, string>
+}
+
 /**
  * Execute a command over SSH and return the results.
  *
@@ -38,7 +45,8 @@ interface SSHResult {
  * @param {string} command - The command to execute.
  * @returns {Promise<SSHResult>} - The execution result.
  */
-async function executeSSHCommand(config: ConnectConfig, command: string): Promise<SSHResult> {
+async function executeSSHCommand(config: Config, command: string): Promise<SSHResult> {
+    let {executionPath, runtimeEnv, ...connectConfig} = config
     return new Promise((resolve, reject) => {
         const conn = new Client();
         let result: SSHResult = {
@@ -48,10 +56,11 @@ async function executeSSHCommand(config: ConnectConfig, command: string): Promis
             signal: null,
             error: null
         };
-
+        const envObject = runtimeEnv ? Object.fromEntries(runtimeEnv) : {}
         conn.on('ready', () => {
             console.log('Client :: ready');
-            conn.exec(command, (err, stream) => {
+            const fullCommand = executionPath ? `cd ${executionPath} && ${command}` : command;
+            conn.exec(fullCommand, {env: envObject}, (err, stream) => {
                 if (err) {
                     result.error = err.message;
                     reject(result);
@@ -72,8 +81,59 @@ async function executeSSHCommand(config: ConnectConfig, command: string): Promis
         }).on('error', (err) => {
             result.error = err.message;
             reject(result);
-        }).connect(config);
+        }).connect(connectConfig);
     });
+}
+
+export class SSHStream extends EventEmitter {
+    execute(config: Config, command: string) {
+        let {executionPath, runtimeEnv, ...connectConfig} = config;
+        const conn = new Client();
+        const envObject = runtimeEnv ? Object.fromEntries(runtimeEnv) : {};
+
+        conn.on('ready', () => {
+            this.emit('ready');
+            const fullCommand = executionPath ? `cd ${executionPath} && ${command}` : command;
+            conn.exec(fullCommand, {env: envObject}, (err, stream) => {
+                if (err) {
+                    this.emit('error', err.message);
+                    conn.end();
+                    return;
+                }
+
+                let stdoutBuffer = '';
+                let stderrBuffer = '';
+
+                stream.on('close', (code: number | undefined, signal: string | undefined) => {
+                    // 在关闭前发送任何剩余的输出
+                    if (stdoutBuffer.length) {
+                        this.emit('data', stdoutBuffer);
+                    }
+                    if (stderrBuffer.length) {
+                        this.emit('stderr', stderrBuffer);
+                    }
+                    this.emit('close', {code, signal});
+                    conn.end();
+                }).on('data', (data: Buffer | string) => {
+                    stdoutBuffer += data.toString();
+                    let lines = stdoutBuffer.split('\n');
+                    while (lines.length > 1) {
+                        this.emit('data', lines.shift());
+                    }
+                    stdoutBuffer = lines.join('');
+                }).stderr.on('data', (data) => {
+                    stderrBuffer += data.toString();
+                    let lines = stderrBuffer.split('\n');
+                    while (lines.length > 1) {
+                        this.emit('stderr', lines.shift());
+                    }
+                    stderrBuffer = lines.join('');
+                });
+            });
+        }).on('error', (err) => {
+            this.emit('error', err.message);
+        }).connect(connectConfig);
+    }
 }
 
 const getFileHash = (filePath: string): Promise<string> => {
@@ -166,7 +226,17 @@ async function getHarborLatestImageVersion(
 }
 
 function setPostUpdateMiddleware<T extends Document>(schema: Schema<T>, postUpdate: (result: any) => void): void {
-    schema.post(/update/i,postUpdate)
+    schema.post(/update/i, postUpdate)
+}
+
+function renderScript(templateVariables: Map<string, string | number>, script: string): string {
+    return script.replace(/{{(\w+)}}/g, (match, key) => {
+        if (templateVariables.has(key)) {
+            const value = templateVariables.get(key);
+            return value !== undefined ? String(value) : match;
+        }
+        return match;
+    });
 }
 
 export {
@@ -177,5 +247,6 @@ export {
     getFileHash,
     findOneAndUpdate,
     getHarborLatestImageVersion,
-    setPostUpdateMiddleware
+    setPostUpdateMiddleware,
+    renderScript
 }

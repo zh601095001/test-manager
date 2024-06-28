@@ -1,13 +1,15 @@
 import Agenda, {Job, JobAttributes, JobAttributesData,} from 'agenda';
-import SequentialTask, {ISequentialTask} from '../models/SequentialTask';
+import ConcurrentTask, {IConcurrentTask} from "../models/ConcurrentTask";
+import callbacks from "./callbacks";
 import {executeSSH} from "./taskUtils";
 import appConfig from "../config/default";
+import SequentialTask from "../models/SequentialTask";
 import {renderScript} from "../utils/utils";
 
 const agenda = new Agenda({
     db: {
         address: appConfig.db.uri,
-        collection: 'sequentialAgendaJobs'
+        collection: 'concurrentAgendaJobs'
     },
     processEvery: '1 second'
 });
@@ -16,40 +18,40 @@ interface AgendaJob<T extends JobAttributesData> extends Job<T> {
     attrs: JobAttributes<T>;
 }
 
-agenda.define('execute task', {concurrency: 1}, async (job: AgendaJob<{
+agenda.define('execute task', {concurrency: 20}, async (job: AgendaJob<{
     taskId: string
 }>, done: (error?: Error) => void) => {
     const {taskId} = job.attrs.data;
     let task = null
     try {
-        task = await SequentialTask.findByIdAndUpdate(taskId, {
+        task = await ConcurrentTask.findByIdAndUpdate(taskId, {
             status: 'running',
         });
         if (!task) {
             console.error('Task not found')
             return
         }
-        await SequentialTask.findByIdAndUpdate(taskId, {
+        await ConcurrentTask.findByIdAndUpdate(taskId, {
             script: renderScript(task.templateVariables, task.script)
         })
-
-        console.log(`Executing task: ${task.title}`);
         switch (task.taskType) {
             case 'ssh':
-                await executeSSH(task, "sequential");
+                await executeSSH(task, "concurrent");
                 break;
             default:
                 throw new Error(`Unsupported task type: ${task.taskType}`);
         }
-        await SequentialTask.findByIdAndUpdate(taskId, {
+        if (task.callbackName) {
+            await callbacks[task.callbackName](task, ConcurrentTask);
+        }
+        await ConcurrentTask.findByIdAndUpdate(taskId, {
             status: 'completed',
         });
-        console.log('Task completed successfully');
         done();
     } catch (error: any) {
         console.error(`Error executing task: ${error.message}`);
         if (task) {
-            await SequentialTask.findByIdAndUpdate(taskId, {
+            await ConcurrentTask.findByIdAndUpdate(taskId, {
                 status: 'failed',
             });
         }
@@ -58,10 +60,9 @@ agenda.define('execute task', {concurrency: 1}, async (job: AgendaJob<{
 });
 
 agenda.define('check and schedule tasks', async () => {
-    const tasks: ISequentialTask[] = await SequentialTask.find({status: 'pending'});
+    const tasks: IConcurrentTask[] = await ConcurrentTask.find({status: 'pending'});
     tasks.forEach(task => {
-        agenda.schedule('in 1 minute', 'execute task', {taskId: task._id.toString()});
-        console.log(`Scheduled task ${task._id} for execution.`);
+        agenda.now('execute task', {taskId: task._id.toString()});
     });
 });
 
@@ -69,7 +70,7 @@ agenda.define('check and schedule tasks', async () => {
 export default async function startAgenda() {
     try {
         await agenda.start();
-        console.log('Agenda started successfully.');
+        console.log('Concurrent Agenda started successfully.');
         await agenda.every('1 second', 'check and schedule tasks');
     } catch (e) {
         console.log(e);

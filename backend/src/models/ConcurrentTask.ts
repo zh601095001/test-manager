@@ -1,7 +1,7 @@
 import mongoose, {Document, ObjectId, Schema} from 'mongoose';
 
 
-export interface ISequentialTask extends Document {
+export interface IConcurrentTask extends Document {
     _id: ObjectId;
     title: string;
     description: string;
@@ -14,7 +14,7 @@ export interface ISequentialTask extends Document {
     createdAt: Date;
     username: string;
     stdout: string[];
-    stderr: string[],
+    stderr: string[];
     callbackName: string;
     exitCode: number;
     exitSignal: string;
@@ -23,7 +23,7 @@ export interface ISequentialTask extends Document {
     templateVariables: Map<string, string>;
 }
 
-const SequentialTaskSchema: Schema = new mongoose.Schema({
+const ConcurrentTaskSchema: Schema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
@@ -49,18 +49,11 @@ const SequentialTaskSchema: Schema = new mongoose.Schema({
     },
     environment: {
         type: Map,
-        of: new Schema({
-            host: String,
-            port: Number,
-            username: String,
-            password: String,
-            privateKey: String,
-            passphrase: String
-        }, {_id: false}) // Prevents _id creation for subdocument
+        of: Schema.Types.Mixed
     },
     info: {
         type: Map,
-        of: String,
+        of: Schema.Types.Mixed
     },
     executionPath: {
         type: String,
@@ -69,7 +62,7 @@ const SequentialTaskSchema: Schema = new mongoose.Schema({
     },
     runtimeEnv: {
         type: Map,
-        of: String,
+        of: Schema.Types.Mixed
     },
     status: {
         type: String,
@@ -105,6 +98,6 @@ const SequentialTaskSchema: Schema = new mongoose.Schema({
     }
 });
 
-const SequentialTask = mongoose.model<ISequentialTask>('SequentialTask', SequentialTaskSchema);
+const ConcurrentTask = mongoose.model<IConcurrentTask>('ConcurrentTask', ConcurrentTaskSchema);
 
-export default SequentialTask;
+export default ConcurrentTask;

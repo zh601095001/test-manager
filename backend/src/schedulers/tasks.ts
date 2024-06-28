@@ -2,6 +2,7 @@ import {executeSSHCommand, getHarborLatestImageVersion} from '../utils/utils'; /
 import Device from "../models/Device";
 import cron from "node-cron";
 import harborService from "../services/harborService";
+import ConcurrentTask from "../models/ConcurrentTask";
 
 async function fetchDevicesAndUpdateFirmware() {
     const devices = await Device.find({"refreshFirmware.flag": true});
@@ -13,53 +14,27 @@ async function fetchDevicesAndUpdateFirmware() {
         }
         const {refreshScript} = device.refreshFirmware || {}
         if (!refreshScript) {
-            console.log("刷新脚本不存在")
+            continue
         }
-        console.log(`开始处理设备: ${device.id}, IP: ${device.deviceIp}`);
         const config = {
             host: device.deviceIp,
             port,
             username,  // 替换为实际的SSH用户名
             password   // 替换为实际的SSH密码
         };
-
         try {
-            const result = await executeSSHCommand(config, refreshScript);
-            console.log(result)
-            // 由系统自动触发的设备获取到ip后恢复到非锁定状态
-            await Device.findOneAndUpdate(
-                {
-                    _id: device._id,
-                    comment: "-",
-                    user: null,
-                    status: "maintained"
+            await ConcurrentTask.create({
+                environment: new Map(Object.entries(config)),
+                script: refreshScript,
+                info: {
+                    deviceIp: device.deviceIp
                 },
-                {
-                    $set: {
-                        status: "unlocked"
-                    }
-                },
-                {new: true}
-            );
-            device.deviceFirmware = result.stdout.trim()
-            await device.save()
+                callbackName: "updateFirmware",
+                title: "固件版本刷新",
+                taskType: "ssh"
+            });
         } catch (error) {
-            // 非锁定状态的设备在获取ip失败后才设置为维护状态
-            await Device.findOneAndUpdate(
-                {
-                    _id: device._id,
-                    status: {$ne: "locked"}
-                },
-                {
-                    $set: {
-                        comment: "-",
-                        status: "maintained"
-                    }
-                },
-                {new: true}
-            );
-            device.deviceFirmware = "获取固件版本失败"
-            await device.save()
+            console.error('Failed to create task:', error);
         }
     }
 }

@@ -3,28 +3,31 @@ import {RootState} from '@/store'
 import {clearCredentials, setCredentials} from "@/features/auth/authSlice";
 import {baseQueryWithReauth} from "@/lib/baseQuery";
 
-// 定义响应用户信息的接口
 export interface UserResponse {
     message: string;
     accessToken: string;
     username: string;
     roles: string[];
+    email: string;
 }
 
-// 定义登录请求的接口
 export interface LoginRequest {
     username: string;
     password: string;
 }
 
-// 定义注册请求的接口
 export interface RegisterRequest {
     username: string;
     password: string;
 }
 
-// 设置基本查询配置
-
+interface RefreshTokenResponse {
+    message: string;
+    accessToken: string;
+    username: string;
+    roles: string[];
+    email: string;
+}
 
 // 创建API服务
 export const authApi = createApi({
@@ -53,7 +56,7 @@ export const authApi = createApi({
                     method: 'POST',
                 }
             },
-            onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
+            onQueryStarted: async (arg, {dispatch, queryFulfilled}) => {
                 try {
                     await queryFulfilled;
                     dispatch(clearCredentials());  // 清除登录信息
@@ -68,8 +71,19 @@ export const authApi = createApi({
                 method: 'DELETE',
             }),
         }),
+        refreshToken: builder.mutation<RefreshTokenResponse, void>({
+            query: () => ({
+                url: "refresh-token",
+                method: "POST"
+            })
+        })
     }),
 })
 
 // 导出用于登录的mutation钩子
-export const {useLoginMutation,useRegisterMutation,useLogoutMutation} = authApi;
+export const {
+    useLoginMutation,
+    useRegisterMutation,
+    useLogoutMutation,
+    useRefreshTokenMutation
+} = authApi;

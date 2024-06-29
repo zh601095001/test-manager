@@ -3,6 +3,92 @@ import { Router } from 'express';
 import ConcurrentTaskController from '../controllers/concurrentTaskController';
 
 const router = Router();
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Task:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           format: oid
+ *           description: Unique identifier for the Task
+ *         title:
+ *           type: string
+ *           description: The title of the task
+ *         description:
+ *           type: string
+ *           description: A brief description of the task
+ *         taskType:
+ *           type: string
+ *           enum: [ssh, python, sql, bash]
+ *           description: The type of the task, which defines the script to be executed
+ *         script:
+ *           type: string
+ *           description: The script content to be executed for the task
+ *         environment:
+ *           type: object
+ *           additionalProperties: true
+ *           description: Environmental variables required for the task
+ *         executionPath:
+ *           type: string
+ *           description: The directory path where the task will be executed
+ *         runtimeEnv:
+ *           type: object
+ *           additionalProperties: true
+ *           description: Runtime environment settings for the task
+ *         status:
+ *           type: string
+ *           enum: [pending, running, completed, failed]
+ *           description: The current status of the task
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The creation time of the task
+ *         username:
+ *           type: string
+ *           description: Username of the user who created the task
+ *         stdout:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Standard output of the task execution
+ *         stderr:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Standard error output of the task execution
+ *         callbackName:
+ *           type: string
+ *           description: Name of the callback function if applicable
+ *         exitCode:
+ *           type: integer
+ *           description: Exit code of the task script after execution
+ *         exitSignal:
+ *           type: string
+ *           description: Signal received on task termination
+ *         error:
+ *           type: string
+ *           description: Error message if the task fails
+ *         info:
+ *           type: object
+ *           additionalProperties: true
+ *           description: Additional information about the task
+ *         templateVariables:
+ *           type: object
+ *           additionalProperties: true
+ *           description: Template variables used within the task script
+ *       required:
+ *         - _id
+ *         - title
+ *         - taskType
+ *         - script
+ *         - status
+ *         - createdAt
+ *         - username
+ *       description: Detailed schema of a task
+ */
 
 /**
  * @swagger

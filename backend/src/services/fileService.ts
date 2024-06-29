@@ -61,7 +61,7 @@ class FileService {
         return {objectName, url};
     }
 
-    private async getFileUrl(objectName: string, bucketName: string = BUCKET_NAME): Promise<string> {
+    async getFileUrl(objectName: string, bucketName: string = BUCKET_NAME): Promise<string> {
         return await this.minioClient.presignedGetObject(bucketName, objectName, 24 * 60 * 60);
     }
 

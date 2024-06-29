@@ -70,11 +70,16 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
     const handleValuesChange = async (changedValues: any, allValues: any) => {
         const {currentObjectName} = changedValues
         if (currentObjectName) {
-            const response = await setCurrentSwitchFirmwareListItem({
-                deviceIp: record.deviceIp,
-                objectName: currentObjectName
-            }).unwrap()
-            message.success(response.message)
+            try {
+                const response = await setCurrentSwitchFirmwareListItem({
+                    deviceIp: record.deviceIp,
+                    objectName: currentObjectName
+                }).unwrap()
+                message.success(response.message)
+
+            } catch (e) {
+                form.setFieldValue("currentObjectName", record?.switchFirmware?.currentObjectName)
+            }
         }
     }
     const handleFirmwareListDelete = async (e: any, option: any) => {
@@ -92,34 +97,51 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
             switchScript: code
         })
     }
+    const handleReInstall = async () => {
+        const currentObjectName = form.getFieldValue("currentObjectName")
+        console.log(currentObjectName)
+        if (currentObjectName) {
+            const response = await setCurrentSwitchFirmwareListItem({
+                deviceIp: record.deviceIp,
+                objectName: currentObjectName
+            }).unwrap()
+            message.success(response.message)
+        }
+    }
     return (
         <div>
             <Form form={form} {...layout} onValuesChange={handleValuesChange}>
                 <Form.Item label="切换固件" className={styles.switchDeviceFirmwareFormItemSwitchFirmwareSelect}>
-                    <Form.Item name="currentObjectName" wrapperCol={{span: 24}}>
-                        <Select
-                            defaultValue={currentObjectName}
-                            // style={{width: 200}}
-                            options={firmwareList}
-                            optionFilterProp="label"
-                            showSearch={true}
-                            optionRender={(option, info: { index: number }) => {
-                                return (
-                                    <div
-                                        style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}
-                                    >
-                                        <span>{option.label}</span>
-                                        <Button
-                                            type="primary"
-                                            danger
-                                            size="middle"
-                                            onClick={(e) => handleFirmwareListDelete(e, option)}
-                                        >删除</Button>
-                                    </div>
-                                )
-                            }}
-                        />
-                        <Button type="primary" style={{marginLeft: 10}}>重新安装</Button>
+                    <Form.Item wrapperCol={{span: 24}}>
+                        <Form.Item name="currentObjectName">
+                            <Select
+                                defaultValue={currentObjectName}
+                                // style={{width: 200}}
+                                options={firmwareList}
+                                optionFilterProp="label"
+                                showSearch={true}
+                                optionRender={(option, info: { index: number }) => {
+                                    return (
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between"
+                                            }}
+                                        >
+                                            <span>{option.label}</span>
+                                            <Button
+                                                type="primary"
+                                                danger
+                                                size="middle"
+                                                onClick={(e) => handleFirmwareListDelete(e, option)}
+                                            >删除</Button>
+                                        </div>
+                                    )
+                                }}
+                            />
+                        </Form.Item>
+                        <Button type="primary" style={{marginLeft: 10}} onClick={handleReInstall}>重新安装</Button>
                     </Form.Item>
                 </Form.Item>
                 <Form.Item label="固件上传">

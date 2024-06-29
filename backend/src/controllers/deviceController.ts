@@ -10,6 +10,8 @@ import {
 } from "./types";
 import {IDevice} from "../models/types";
 import {findOneAndUpdate, getDateInUTC8} from "../utils/utils";
+import ConcurrentTaskService from "../services/concurrentTaskService";
+import {fileService} from "../services/fileService";
 
 
 const lockFreeDevice = async (req: LockFreeDeviceRequest, res: Response) => {
@@ -225,10 +227,34 @@ const rmSwitchFirmwareListItem = async (req: Request, res: Response): Promise<vo
 const setCurrentSwitchFirmwareListItem = async (req: Request, res: Response): Promise<void> => {
     const {device_ip: deviceIp} = req.params;
     const {objectName} = req.body;
+    const device = await deviceService.getDevice(deviceIp)
+    const config = {
+        host: deviceIp,
+        port: device.sshConfig.port as number,
+        username: device.sshConfig.username as string,
+        password: device.sshConfig.password as string
+    }
+    const FILE_URL = await fileService.getFileUrl(objectName, "firmwares")
+    const templateVariables = {
+        FILE_URL
+    }
     try {
+        const title = `switchFirmware-${deviceIp}`
+        const tasks = await ConcurrentTaskService.queryTasks({title, status: {$ne: "completed"}})
+        if (tasks.length) {
+            throw new Error("切换失败，当前队列已有任务在执行！")
+        }
         await deviceService.setCurrentSwitchFirmwareListItem(deviceIp, objectName);
+        await ConcurrentTaskService.createTask({
+            title,
+            description: "切换固件版本",
+            taskType: "ssh",
+            script: device.switchFirmware.switchScript,
+            templateVariables: new Map(Object.entries(templateVariables)),
+            environment: new Map(Object.entries(config))
+        })
         res.status(200).json({
-            message: "Set current switch firmware successfully",
+            message: "切换固件版本成功！",
         });
     } catch (error: any) {
         res.status(500).send({

@@ -43,10 +43,16 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const accessToken = generateToken(user);
     res.cookie('refreshToken', user.refreshToken, {
         httpOnly: true, // 使 cookie 仅可通过 HTTP 访问
-        secure: true, // 只有在 HTTPS 上才发送 cookie
+        secure: false, // 只有在 HTTPS 上才发送 cookie
         maxAge: 7 * 24 * 60 * 60 * 1000 // 设置 cookie 的有效期
     });
-    res.json({message: 'Logged in successfully', accessToken, username: user.username, roles: user.roles});
+    res.json({
+        message: 'Logged in successfully',
+        accessToken,
+        username: user.username,
+        roles: user.roles,
+        email: user.email
+    });
 };
 
 export const refreshToken = async (req: Request, res: Response): Promise<void> => {
@@ -57,13 +63,19 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
         if (!user) {
             throw new Error('Invalid refresh token');
         }
-        const accessToken = generateToken(user);
+        const accessToken = await generateToken(user);
         res.cookie('refreshToken', user.refreshToken, {
             httpOnly: true, // 使 cookie 仅可通过 HTTP 访问
-            secure: true, // 只有在 HTTPS 上才发送 cookie
+            secure: false, // 只有在 HTTPS 上才发送 cookie
             maxAge: 7 * 24 * 60 * 60 * 1000 // 设置 cookie 的有效期
         });
-        res.json({message: 'Token refreshed', accessToken});
+        res.json({
+            message: 'Token refreshed',
+            accessToken,
+            username: user.username,
+            roles: user.roles,
+            email: user.email
+        });
     } catch (e) {
         const error = e as CustomError
         res.status(401).json({message: 'Invalid request or expired refresh token', error: error.message});

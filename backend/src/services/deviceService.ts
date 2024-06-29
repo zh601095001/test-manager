@@ -196,6 +196,14 @@ const getSwitchInfo = async (deviceIp: string) => {
     return device?.switchFirmware
 }
 
+const getDevice = async (deviceIp: string) => {
+    const device = await Device.findOne({deviceIp});
+    if (!device) {
+        throw new Error('Device not found');
+    }
+    return device
+}
+
 export default {
     lockDeviceByIp,
     releaseDeviceByIp,
@@ -209,4 +217,5 @@ export default {
     setCurrentSwitchFirmwareListItem,
     setSwitchScript,
     getSwitchInfo,
+    getDevice
 };

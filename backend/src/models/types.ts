@@ -12,7 +12,7 @@ interface IRefreshFirmware {
 }
 
 interface ISwitchFirmware {
-    firmwareList:  Array<{
+    firmwareList: Array<{
         fileName: string;
         objectName: string;
     }>;
@@ -36,6 +36,13 @@ interface IDevice extends Document {
     switchFirmware: ISwitchFirmware
 }
 
+interface IDeviceSettings extends Document {
+    firmwareList: Array<{
+        fileName: string;
+        objectName: string;
+    }>;
+    switchScript: string;
+}
 
 interface IHarbor extends Document {
     esVersion: string | null
@@ -44,5 +51,6 @@ interface IHarbor extends Document {
 export {
     IDevice,
     IHarbor,
-    ISSHConfig
+    ISSHConfig,
+    IDeviceSettings
 }

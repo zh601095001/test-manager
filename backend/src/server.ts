@@ -12,7 +12,7 @@ import mongoose from 'mongoose';
 import config from './config/default';
 import devicesRoutes from './routes/devicesRoutes';
 import deviceRoute from "./routes/deviceRoute";
-import {handleUpgrade} from './routes/wsRoutes';
+import {handleUpgrade} from './controllers/wsController';
 import passport from "passport";
 import userRouters from "./routes/userRouters";
 import cookieParser from 'cookie-parser';
@@ -30,6 +30,8 @@ import concurrentTaskRoutes from "./routes/concurrentTaskRoutes";
 import {errorHandler} from "./errorHandler/errorHandler";
 import startConcurrentTaskAgenda from "./schedulers/concurrentTask";
 import startSequentialTaskAgenda from "./schedulers/sequentialTask";
+import {initializeDeviceSettings} from "./services/devicesSettingService";
+import deviceSettingsRoutes from "./routes/deviceSettingsRoutes";
 
 const app = express();
 
@@ -57,6 +59,7 @@ app.use(reportSummaryRoutes)
 app.use(emailRoutes);
 app.use(harborRoutes)
 app.use("/concurrent", concurrentTaskRoutes)
+app.use("/device-settings", deviceSettingsRoutes)
 app.use(errorHandler);
 mongoose.connect(config.db.uri,)
     .then(() => {
@@ -70,5 +73,8 @@ mongoose.connect(config.db.uri,)
             console.error(err)
         })
         runTask()
+        initializeDeviceSettings().catch((err: Error) => {
+            console.error(err)
+        })
     })
     .catch(err => console.error('MongoDB connection error:', err));

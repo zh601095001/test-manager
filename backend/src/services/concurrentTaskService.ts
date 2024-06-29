@@ -1,5 +1,5 @@
 // services/ConcurrentTaskService.ts
-import {IConcurrentTask} from '../models/ConcurrentTask';
+import {IConcurrentTask} from './types';
 import ConcurrentTask from '../models/ConcurrentTask';
 
 class ConcurrentTaskService {
@@ -19,6 +19,10 @@ class ConcurrentTaskService {
     async getTasksByUsernameAndStatus(username: string, status?: string): Promise<IConcurrentTask[]> {
         const query: any = {username};
         if (status) query.status = status;
+        return ConcurrentTask.find(query);
+    }
+
+    async queryTasks(query: any): Promise<IConcurrentTask[]> {
         return ConcurrentTask.find(query);
     }
 }

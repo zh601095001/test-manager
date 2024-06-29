@@ -236,7 +236,7 @@ function renderScript(templateVariables: Map<string, string | number>, script: s
             return value !== undefined ? String(value) : match;
         }
         return match;
-    });
+    }) + "\n";
 }
 
 export {

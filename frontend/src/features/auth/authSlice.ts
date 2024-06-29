@@ -7,22 +7,24 @@ type AuthState = {
     accessToken: string | null;
     username: string | null;
     roles: string[] | null;
+    email: string | null;
 };
 
-export const loadInitialState = (): AuthState => {
-    return {
-        message: null,
-        accessToken: localStorage.getItem('accessToken'),
-        username: localStorage.getItem('username'),
-        roles: JSON.parse(localStorage.getItem('roles') || 'null'),
-    };
-};
+// export const loadInitialState = (): AuthState => {
+//     return {
+//         message: null,
+//         accessToken: localStorage.getItem('accessToken'),
+//         username: localStorage.getItem('username'),
+//         roles: JSON.parse(localStorage.getItem('roles') || 'null'),
+//     };
+// };
 
 const initialState: AuthState = {
     message: null,
     accessToken: null,
     username: null,
     roles: null,
+    email: null
 };
 
 const authSlice = createSlice({
@@ -31,30 +33,23 @@ const authSlice = createSlice({
     reducers: {
         setCredentials: (
             state,
-            {payload: {username, accessToken, roles}}: PayloadAction<{
+            {payload: {username, accessToken, roles, email}}: PayloadAction<{
                 username: string | null;
                 accessToken: string | null;
-                roles: string[] | null
+                roles: string[] | null;
+                email: string | null;
             }>
         ) => {
             state.username = username;
             state.roles = roles;
             state.accessToken = accessToken;
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('accessToken', accessToken || '');
-                localStorage.setItem('username', username || '');
-                localStorage.setItem('roles', JSON.stringify(roles));
-            }
+            state.email = email
         },
         clearCredentials: (state) => {
             state.username = null;
             state.accessToken = null;
             state.roles = null;
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('username');
-                localStorage.removeItem('roles');
-            }
+            state.email = null
         },
     },
 });

@@ -1,7 +1,7 @@
 "use client"
 import React, {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {selectCurrentUser, setCredentials, loadInitialState, selectCurrentRoles} from "@/features/auth/authSlice";
+import {selectCurrentUser, setCredentials, selectCurrentRoles} from "@/features/auth/authSlice";
 import {useRouter} from 'next/navigation'; // 确保正确引用next/router
 import {Avatar, Dropdown, message, Modal, Form, Input} from "antd";
 import {
@@ -13,7 +13,7 @@ import {
     UserOutlined
 } from "@ant-design/icons";
 import type {MenuProps} from 'antd';
-import {useLogoutMutation} from "@/services/auth";
+import {useLogoutMutation, useRefreshTokenMutation} from "@/services/auth";
 import {useAddDeviceMutation} from "@/services/devicePool";
 import {useWebSocket} from "@/components/WebsocketProvider";
 
@@ -29,14 +29,20 @@ export default function AuthLayout({children}: {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm()
     const wsContext = useWebSocket()
+    const [refreshToken] = useRefreshTokenMutation()
 
     useEffect(() => {
-        const auths = loadInitialState();
-        if (auths.username) {
-            dispatch(setCredentials(auths));
-        } else {
-            router.push("/login");
-        }
+        (async ()=>{
+            try{
+                const data = await refreshToken().unwrap();
+                if (data.accessToken){
+                    dispatch(setCredentials(data));
+                }
+            }catch (e){
+                message.error("认证失败或登录信息已经过期，请重新登录！")
+                router.push("/login");
+            }
+        })()
     }, [dispatch, router]);
 
     const isAdmin = roles && roles.includes("admin");

@@ -23,16 +23,22 @@ async function fetchDevicesAndUpdateFirmware() {
             password   // 替换为实际的SSH密码
         };
         try {
-            await ConcurrentTask.create({
-                environment: new Map(Object.entries(config)),
-                script: refreshScript,
-                info: {
-                    deviceIp: device.deviceIp
-                },
-                callbackName: "updateFirmware",
-                title: "固件版本刷新",
-                taskType: "ssh"
-            });
+            const isExistTask = await ConcurrentTask.exists({
+                "info.deviceIp": device.deviceIp,
+                status: "pending"
+            })
+            if (!isExistTask) {
+                await ConcurrentTask.create({
+                    environment: new Map(Object.entries(config)),
+                    script: refreshScript,
+                    info: {
+                        deviceIp: device.deviceIp
+                    },
+                    callbackName: "updateFirmware",
+                    title: "固件版本刷新",
+                    taskType: "ssh"
+                });
+            }
         } catch (error) {
             console.error('Failed to create task:', error);
         }

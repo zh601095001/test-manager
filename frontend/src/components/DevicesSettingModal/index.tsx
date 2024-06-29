@@ -3,6 +3,7 @@ import {Button, Form, message, ModalProps, Select, Upload, UploadProps} from 'an
 import {Modal} from "antd";
 import {InboxOutlined} from "@ant-design/icons";
 import CodeEditorForm from "@/components/CodeInput";
+import styles from "./index.module.scss"
 
 const {Dragger} = Upload;
 const layout = {
@@ -31,8 +32,11 @@ interface DeviceSettingModalProps extends ModalProps {
 
 function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingModalProps) {
     const [form] = Form.useForm()
-    let currentObjectName = ""
-    let firmwareList: any = []
+    const deviceNames = new Set<string>()
+    devices?.forEach(device => {
+        deviceNames.add(device.deviceName)
+    })
+    let currentObjectName = undefined
     const props: UploadProps = {
         name: 'file',
         multiple: true,
@@ -69,6 +73,21 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
 
         })
     }
+    const handleSelectAll = () => {
+        form.setFieldValue("currentDevices", devices ? devices.map(device => ({
+            value: device.deviceIp
+        })) : [])
+    }
+    const handleClearSelect = () => {
+        form.setFieldValue("currentDevices", [])
+    }
+    const handleSelectByDeviceName = (deviceName: string) => {
+        form.setFieldValue("currentDevices", devices ? devices.filter(device => {
+            return device.deviceName === deviceName
+        }).map(device => ({
+            value: device.deviceIp
+        })) : [])
+    }
     return (
         <Modal
             width={"60%"}
@@ -80,19 +99,40 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
         >
             <div style={{padding: 20}}>
                 <Form form={form} {...layout} onValuesChange={handleValuesChange}>
-                    <Form.Item label="设备" name="currentObjectName">
-                        <Select
-                            defaultValue={currentObjectName}
-                            options={firmwareList}
-                            optionFilterProp="label"
-                            showSearch={true}
-                        />
+                    <Form.Item label="批量选择设备">
+                        {
+                            Array.from(deviceNames).map(deviceName => {
+                                return (
+                                    <Button
+                                        type="primary"
+                                        style={{marginLeft: 10}}
+                                        onClick={() => handleSelectByDeviceName(deviceName)}>选中{deviceName}
+                                    </Button>
+                                )
+                            })
+                        }
+                    </Form.Item>
+                    <Form.Item label="设备" className={styles.selectAllDeviceIpSelect}>
+                        <Form.Item name="currentDevices">
+                            <Select
+                                mode="multiple"
+                                options={devices ? devices.map(device => ({
+                                    label: `${device.deviceIp}-${device.deviceName}`,
+                                    value: device.deviceIp
+                                })) : []}
+                                optionFilterProp="label"
+                                showSearch={true}
+                            />
+                        </Form.Item>
+                        <Button type="primary" style={{marginLeft: 10}} onClick={handleSelectAll}>全选</Button>
+                        <Button type="primary" danger style={{marginLeft: 10}}
+                                onClick={handleClearSelect}>清空选择</Button>
                     </Form.Item>
                     <Form.Item label="固件" name="currentObjectName">
                         <Select
                             defaultValue={currentObjectName}
                             // style={{width: 200}}
-                            options={firmwareList}
+                            options={[]}
                             optionFilterProp="label"
                             showSearch={true}
                             optionRender={(option, info: { index: number }) => {

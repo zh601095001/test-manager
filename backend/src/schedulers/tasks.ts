@@ -58,23 +58,28 @@ async function clearAllLockedDevice() {
 }
 
 async function fetchHarborsAndUpdate() {
-    const harborHost = "repository.bxplc.cn";
-    const projectName = "auto";
-    const repositoryName = "xin3-theia-app";
-    const xin3TheiaLatestImageVersion = await getHarborLatestImageVersion({
-        harborHost,
-        projectName,
-        repositoryName,
-        username: "esuser",
-        password: "Esuser123123"
-    })
-    const fullImageName = `${harborHost}/${projectName}/${repositoryName}`;
-    await harborService.updateHarbor(repositoryName, {
-        info: {
-            version: xin3TheiaLatestImageVersion,
-            fullImageName
-        }
-    })
+    try {
+        const harborHost = "repository.bxplc.cn";
+        const projectName = "auto";
+        const repositoryName = "xin3-theia-app";
+        const xin3TheiaLatestImageVersion = await getHarborLatestImageVersion({
+            harborHost,
+            projectName,
+            repositoryName,
+            username: "esuser",
+            password: "Esuser123123"
+        })
+        const fullImageName = `${harborHost}/${projectName}/${repositoryName}`;
+        await harborService.updateHarbor(repositoryName, {
+            info: {
+                version: xin3TheiaLatestImageVersion,
+                fullImageName
+            }
+        })
+    } catch (e) {
+        console.log(e)
+    }
+
 }
 
 export default function () {

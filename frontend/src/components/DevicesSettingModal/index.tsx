@@ -1,9 +1,17 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Button, Form, message, ModalProps, Select, Upload, UploadProps} from 'antd';
 import {Modal} from "antd";
 import {InboxOutlined} from "@ant-design/icons";
 import CodeEditorForm from "@/components/CodeInput";
 import styles from "./index.module.scss"
+import {
+    useAddFirmwareMutation,
+    useGetDeviceSettingsQuery,
+    useRemoveFirmwareMutation, useUpdateDeviceSettingsMutation
+} from "@/services/deviceSettings";
+import {useCreateConcurrentTaskMutation} from "@/services/task";
+import {useGetFileUrlMutation} from "@/services/files";
+import {useGetSshConfigMutation} from "@/services/devicePool";
 
 const {Dragger} = Upload;
 const layout = {
@@ -32,11 +40,23 @@ interface DeviceSettingModalProps extends ModalProps {
 
 function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingModalProps) {
     const [form] = Form.useForm()
+    const {data: deviceSettings} = useGetDeviceSettingsQuery()
+    const [addFirmware] = useAddFirmwareMutation()
+    const [removeFirmware] = useRemoveFirmwareMutation()
+    const [updateDeviceSettings] = useUpdateDeviceSettingsMutation()
+    const [createConcurrentTask] = useCreateConcurrentTaskMutation()
+    const [getFileUrl] = useGetFileUrlMutation()
+    const [getSshConfig] = useGetSshConfigMutation()
     const deviceNames = new Set<string>()
     devices?.forEach(device => {
         deviceNames.add(device.deviceName)
     })
-    let currentObjectName = undefined
+    useEffect(() => {
+        const switchScript = deviceSettings?.switchScript
+        if (switchScript) {
+            form.setFieldValue("updateScript", deviceSettings?.switchScript)
+        }
+    }, [deviceSettings]);
     const props: UploadProps = {
         name: 'file',
         multiple: true,
@@ -45,17 +65,15 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
             const {status} = info.file;
             if (status === "removed") {
                 const {name: fileName, response: {objectName}} = info.file
-                // await rmSwitchFirmwareListItem({
-                //     deviceIp: record.deviceIp,
-                //     objectName
-                // })
+                await removeFirmware({
+                    objectName
+                })
             } else if (status === 'done') {
                 const {name: fileName, response: {objectName}} = info.file
-                // await addSwitchFirmwareListItem({
-                //     deviceIp: record.deviceIp,
-                //     objectName,
-                //     fileName
-                // })
+                await addFirmware({
+                    objectName,
+                    fileName
+                })
                 await message.success(`${info.file.name} file uploaded successfully.`);
             } else if (status === 'error') {
                 await message.error(`${info.file.name} file upload failed.`);
@@ -68,10 +86,14 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
     const handleFirmwareListDelete = (e: any, option: any) => {
 
     }
-    const handleUpdateScriptSave = ({code}: { code: any }) => {
-        return new Promise(() => {
-
-        })
+    const handleUpdateScriptSave = async ({code}: { code: any }) => {
+        try {
+            await updateDeviceSettings({
+                switchScript: code
+            })
+        } catch (e) {
+            console.log(e)
+        }
     }
     const handleSelectAll = () => {
         form.setFieldValue("currentDevices", devices ? devices.map(device => ({
@@ -88,6 +110,39 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
             value: device.deviceIp
         })) : [])
     }
+    const handleSubmit = async (values: any) => {
+        for (let currentDevice of values.currentDevices) {
+            const fileUrlRes = await getFileUrl({
+                bucketName: "firmwares",
+                objectName: values.firmwareList
+            }).unwrap()
+            const sshConfig = await getSshConfig({
+                deviceIp: currentDevice
+            }).unwrap()
+            console.log({
+                title: `批量更新-${currentDevice}`,
+                description: "切换固件版本",
+                taskType: "ssh",
+                script: values.updateScript,
+                templateVariables: {
+                    FILE_URL: fileUrlRes.url
+                },
+                environment: {...sshConfig, host: currentDevice},
+                parallel: 1
+            })
+            await createConcurrentTask({
+                title: `批量更新-${currentDevice}`,
+                description: "切换固件版本",
+                taskType: "ssh",
+                script: values.updateScript,
+                templateVariables: {
+                    FILE_URL: fileUrlRes.url
+                },
+                environment: {...sshConfig, host: currentDevice},
+                parallel: 1
+            })
+        }
+    }
     return (
         <Modal
             width={"60%"}
@@ -98,12 +153,13 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
             {...modalProps}
         >
             <div style={{padding: 20}}>
-                <Form form={form} {...layout} onValuesChange={handleValuesChange}>
+                <Form form={form} {...layout} onValuesChange={handleValuesChange} onFinish={handleSubmit}>
                     <Form.Item label="批量选择设备">
                         {
-                            Array.from(deviceNames).map(deviceName => {
+                            Array.from(deviceNames).map((deviceName, index) => {
                                 return (
                                     <Button
+                                        key={index}
                                         type="primary"
                                         style={{marginLeft: 10}}
                                         onClick={() => handleSelectByDeviceName(deviceName)}>选中{deviceName}
@@ -113,7 +169,8 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
                         }
                     </Form.Item>
                     <Form.Item label="设备" className={styles.selectAllDeviceIpSelect}>
-                        <Form.Item name="currentDevices">
+                        <Form.Item name="currentDevices"
+                                   rules={[{required: true, message: '请选择需要切换固件的设备!'}]}>
                             <Select
                                 mode="multiple"
                                 options={devices ? devices.map(device => ({
@@ -128,11 +185,15 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
                         <Button type="primary" danger style={{marginLeft: 10}}
                                 onClick={handleClearSelect}>清空选择</Button>
                     </Form.Item>
-                    <Form.Item label="固件" name="currentObjectName">
+                    <Form.Item label="固件" name="firmwareList"
+                               rules={[{required: true, message: '请选择需要切换的固件!'}]}>
                         <Select
-                            defaultValue={currentObjectName}
-                            // style={{width: 200}}
-                            options={[]}
+                            options={deviceSettings ? deviceSettings.firmwareList.map((firmware) => {
+                                return {
+                                    value: firmware.objectName,
+                                    label: firmware.fileName
+                                }
+                            }) : []}
                             optionFilterProp="label"
                             showSearch={true}
                             optionRender={(option, info: { index: number }) => {

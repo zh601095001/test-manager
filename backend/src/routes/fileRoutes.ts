@@ -72,4 +72,30 @@ router.post('/:bucketName', upload.single('file'), fileController.uploadFile);
  */
 router.get('/:bucketName/:objectName', fileController.downloadFile);
 
+/**
+ * @swagger
+ * /files/url/{bucketName}/{objectName}:
+ *   get:
+ *     summary: Get a file URL
+ *     tags: [Files]
+ *     parameters:
+ *       - in: path
+ *         name: bucketName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the bucket where the file is stored
+ *       - in: path
+ *         name: objectName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the file for which the URL is requested
+ *     responses:
+ *       200:
+ *         description: URL retrieved successfully
+ *       500:
+ *         description: Error retrieving URL
+ */
+router.get("/url/:bucketName/:objectName",fileController.getFileUrl)
 export default router;

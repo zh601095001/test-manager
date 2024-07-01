@@ -101,7 +101,13 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Task'
+ *             type: object
+ *             properties:
+ *               parallel:
+ *                 type: number
+ *                 description: Optional parallel execution parameter
+ *               task:
+ *                 $ref: '#/components/schemas/Task'
  *     responses:
  *       201:
  *         description: Task created successfully

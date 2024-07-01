@@ -67,6 +67,14 @@ export const devicePoolApi = createApi({
                 body: extras
             })
         }),
+        getSshConfig: builder.mutation({
+            query: ({deviceIp}: {
+                deviceIp: string;
+            }) => ({
+                url: `device/${deviceIp}/ssh-config`,
+                method: "GET",
+            })
+        }),
         setRefreshFirmware: builder.mutation({
             query: ({deviceIp, ...extras}: {
                 deviceIp: string;
@@ -133,5 +141,6 @@ export const {
     useAddSwitchFirmwareListItemMutation,
     useRmSwitchFirmwareListItemMutation,
     useSetCurrentSwitchFirmwareListItemMutation,
-    useSetSwitchScriptMutation
+    useSetSwitchScriptMutation,
+    useGetSshConfigMutation
 } = devicePoolApi

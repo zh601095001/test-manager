@@ -33,6 +33,17 @@ class FileController {
             res.status(500).send({message: `Error downloading file: ${error.message}`});
         }
     }
+
+    async getFileUrl(req: Request, res: Response){
+        let {bucketName, objectName} = req.params
+        try{
+            const url = await fileService.getFileUrl(objectName, bucketName)
+            res.status(200).json({url})
+        }catch (error) {
+            // @ts-ignore
+            res.status(500).send({message: `获取url失败: ${error.message}`});
+        }
+    }
 }
 
 export const fileController = new FileController();

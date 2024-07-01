@@ -240,19 +240,16 @@ const setCurrentSwitchFirmwareListItem = async (req: Request, res: Response): Pr
     }
     try {
         const title = `switchFirmware-${deviceIp}`
-        const tasks = await ConcurrentTaskService.queryTasks({title, status: {$ne: "completed"}})
-        if (tasks.length) {
-            throw new Error("切换失败，当前队列已有任务在执行！")
-        }
-        await deviceService.setCurrentSwitchFirmwareListItem(deviceIp, objectName);
         await ConcurrentTaskService.createTask({
             title,
             description: "切换固件版本",
             taskType: "ssh",
             script: device.switchFirmware.switchScript,
             templateVariables: new Map(Object.entries(templateVariables)),
-            environment: new Map(Object.entries(config))
+            environment: new Map(Object.entries(config)),
+            parallel: 1
         })
+        await deviceService.setCurrentSwitchFirmwareListItem(deviceIp, objectName);
         res.status(200).json({
             message: "切换固件版本成功！",
         });

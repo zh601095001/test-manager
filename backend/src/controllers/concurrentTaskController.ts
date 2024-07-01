@@ -2,6 +2,7 @@
 import {Request, Response} from 'express';
 import ConcurrentTaskService from '../services/concurrentTaskService';
 
+
 class ConcurrentTaskController {
     async createTask(req: Request, res: Response): Promise<void> {
         try {

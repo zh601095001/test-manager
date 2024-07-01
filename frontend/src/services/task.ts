@@ -13,6 +13,7 @@ interface CreateTaskRequest {
     templateVariables?: Record<string, string>;
     username?: string;
     callbackName?: string;
+    parallel?: number
 }
 
 // 响应数据的接口
@@ -46,7 +47,7 @@ export const taskApi = createApi({
     endpoints: (builder) => ({
         createConcurrentTask: builder.mutation<CreateTaskResponse, CreateTaskRequest>({
             query: (taskData) => ({
-                url: 'tasks/create',
+                url: 'concurrent/task',
                 method: 'POST',
                 body: taskData
             })

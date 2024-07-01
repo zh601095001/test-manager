@@ -225,20 +225,20 @@ const rmSwitchFirmwareListItem = async (req: Request, res: Response): Promise<vo
     }
 }
 const setCurrentSwitchFirmwareListItem = async (req: Request, res: Response): Promise<void> => {
-    const {device_ip: deviceIp} = req.params;
-    const {objectName} = req.body;
-    const device = await deviceService.getDevice(deviceIp)
-    const config = {
-        host: deviceIp,
-        port: device.sshConfig.port as number,
-        username: device.sshConfig.username as string,
-        password: device.sshConfig.password as string
-    }
-    const FILE_URL = await fileService.getFileUrl(objectName, "firmwares")
-    const templateVariables = {
-        FILE_URL
-    }
     try {
+        const {device_ip: deviceIp} = req.params;
+        const {objectName} = req.body;
+        const device = await deviceService.getDevice(deviceIp)
+        const config = {
+            host: deviceIp,
+            port: device.sshConfig.port as number,
+            username: device.sshConfig.username as string,
+            password: device.sshConfig.password as string
+        }
+        const FILE_URL = await fileService.getFileUrl(objectName, "firmwares")
+        const templateVariables = {
+            FILE_URL
+        }
         const title = `switchFirmware-${deviceIp}`
         await ConcurrentTaskService.createTask({
             title,

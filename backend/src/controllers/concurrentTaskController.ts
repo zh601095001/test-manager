@@ -45,6 +45,28 @@ class ConcurrentTaskController {
             res.status(500).json({message: error.message});
         }
     }
+
+    async getTasks(req: Request, res: Response) {
+        try {
+            const {title, limit, offset, status} = req.query;
+
+            const titleParam = title as string;
+            const limitParam = limit ? parseInt(limit as string, 10) : 10;
+            const offsetParam = offset ? parseInt(offset as string, 0) : 0;
+            const statusParam = status as string;
+
+            const tasks = await ConcurrentTaskService.getTasks({
+                title: titleParam,
+                limit: limitParam,
+                offset: offsetParam,
+                status: statusParam
+            });
+
+            res.json(tasks);
+        } catch (error: any) {
+            res.status(500).json({message: error.message});
+        }
+    }
 }
 
 export default new ConcurrentTaskController();

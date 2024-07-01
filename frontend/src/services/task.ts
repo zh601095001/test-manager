@@ -40,6 +40,13 @@ interface CreateTaskResponse {
     templateVariables?: Record<string, string>;
 }
 
+interface GetTasksRequest {
+    title?: string;
+    taskType?: 'ssh' | 'python' | 'sql' | 'bash';
+    status?: 'pending' | 'running' | 'completed' | 'failed';
+    limit?: number;
+    offset?: number;
+}
 
 export const taskApi = createApi({
     reducerPath: 'taskApi',
@@ -51,10 +58,18 @@ export const taskApi = createApi({
                 method: 'POST',
                 body: taskData
             })
-        })
+        }),
+        getTasks: builder.mutation<CreateTaskResponse[], GetTasksRequest>({
+            query: (params) => ({
+                url: 'concurrent/tasks/s',
+                method: 'GET',
+                params: params // 这将包括所有非空的查询参数，如 title, taskType, status, limit, offset
+            })
+        }),
     }),
 });
 
 export const {
-    useCreateConcurrentTaskMutation
+    useCreateConcurrentTaskMutation,
+    useGetTasksMutation
 } = taskApi

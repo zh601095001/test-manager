@@ -1,0 +1,30 @@
+.taskItemList {
+  :global {
+    ul {
+      height: 450px;
+      overflow-y: scroll;
+
+    }
+    /* 整个滚动条 */
+    ul::-webkit-scrollbar {
+      width: 5px; /* 滚动条的宽度 */
+      height: 5px; /* 滚动条的高度，对水平滚动条有效 */
+    }
+
+    /* 滚动条轨道 */
+    ul::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1); /* 设置轨道的背景色为半透明 */
+    }
+
+    /* 滚动条滑块 */
+    ul::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.5); /* 设置滑块的背景色为更深的半透明 */
+      border-radius: 10px; /* 设置滑块的圆角 */
+    }
+
+    /* 滚动条滑块:hover */
+    ul::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(0, 0, 0, 0.7); /* 滑块 hover 时的颜色 */
+    }
+  }
+}

@@ -2,6 +2,7 @@ import {WebSocketServer, WebSocket as NodeWebSocket} from 'ws';
 import deviceService from '../services/deviceService';
 import {Server} from 'http';
 import harborService from "../services/harborService";
+import concurrentTaskService from "../services/concurrentTaskService";
 
 const wss = new WebSocketServer({noServer: true});
 const userMap = new Map<NodeWebSocket, { username: string | null }>();
@@ -49,6 +50,12 @@ async function broadcast(type: string, dataProvider: (() => Promise<any>) | any,
 setInterval(() => {
     broadcast('all-devices', deviceService.getAllDevices);
     broadcast('all-harbors', harborService.getAllHarbors);
+    broadcast("all-running-tasks", () => concurrentTaskService.getTasks({
+        title: "(switchFirmware|批量更新)",
+        limit: 1000,
+        status: "running",
+        onlyCount: true
+    }))
 }, 1000);
 
 function handleUpgrade(server: Server) {

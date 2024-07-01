@@ -98,12 +98,11 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
         })
     }
     const handleReInstall = async () => {
-        const currentObjectName = form.getFieldValue("currentObjectName")
-        console.log(currentObjectName)
-        if (currentObjectName) {
+        const _currentObjectName = form.getFieldValue("currentObjectName") || currentObjectName
+        if (_currentObjectName) {
             const response = await setCurrentSwitchFirmwareListItem({
                 deviceIp: record.deviceIp,
-                objectName: currentObjectName
+                objectName: _currentObjectName
             }).unwrap()
             message.success(response.message)
         }

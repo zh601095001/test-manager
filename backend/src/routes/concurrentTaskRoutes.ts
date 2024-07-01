@@ -1,6 +1,7 @@
 // routes/concurrentTaskRoutes.ts
 import { Router } from 'express';
 import ConcurrentTaskController from '../controllers/concurrentTaskController';
+import ConcurrentTask from "../models/ConcurrentTask";
 
 const router = Router();
 /**
@@ -192,5 +193,61 @@ router.get('/task/:id', ConcurrentTaskController.getTask);
  *                 $ref: '#/components/schemas/Task'
  */
 router.get('/tasks/user/:username', ConcurrentTaskController.getTasksByUsernameAndStatus);
+
+/**
+ * @swagger
+ * /concurrent/tasks/s:
+ *   get:
+ *     summary: Retrieves tasks based on query parameters
+ *     description: Fetch tasks with optional filtering by title and status, and support for pagination.
+ *     tags:
+ *       - Tasks
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Title of the task for filtering
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         required: false
+ *         description: Limit the number of tasks returned
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         required: false
+ *         description: Offset where to start fetching the tasks
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Filter tasks by status
+ *     responses:
+ *       200:
+ *         description: A list of tasks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Task'
+ *       500:
+ *         description: Error message
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+router.get("/tasks/s",ConcurrentTaskController.getTasks)
 
 export default router;

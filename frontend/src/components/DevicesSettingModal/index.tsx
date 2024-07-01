@@ -11,7 +11,11 @@ import {
 } from "@/services/deviceSettings";
 import {useCreateConcurrentTaskMutation} from "@/services/task";
 import {useGetFileUrlMutation} from "@/services/files";
-import {useGetSshConfigMutation} from "@/services/devicePool";
+import {
+    useAddSwitchFirmwareListItemMutation,
+    useGetSshConfigMutation,
+    useSetCurrentSwitchFirmwareListItemMutation
+} from "@/services/devicePool";
 
 const {Dragger} = Upload;
 const layout = {
@@ -47,6 +51,8 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
     const [createConcurrentTask] = useCreateConcurrentTaskMutation()
     const [getFileUrl] = useGetFileUrlMutation()
     const [getSshConfig] = useGetSshConfigMutation()
+    const [addSwitchFirmwareListItem] = useAddSwitchFirmwareListItemMutation()
+    const [setCurrentSwitchFirmwareListItem] = useSetCurrentSwitchFirmwareListItemMutation()
     const deviceNames = new Set<string>()
     devices?.forEach(device => {
         deviceNames.add(device.deviceName)
@@ -74,6 +80,15 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
                     objectName,
                     fileName
                 })
+                if (devices) {
+                    for (let device of devices) {
+                        await addSwitchFirmwareListItem({
+                            deviceIp: device.deviceIp,
+                            objectName,
+                            fileName
+                        })
+                    }
+                }
                 await message.success(`${info.file.name} file uploaded successfully.`);
             } else if (status === 'error') {
                 await message.error(`${info.file.name} file upload failed.`);
@@ -112,35 +127,29 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
     }
     const handleSubmit = async (values: any) => {
         for (let currentDevice of values.currentDevices) {
-            const fileUrlRes = await getFileUrl({
-                bucketName: "firmwares",
-                objectName: values.firmwareList
-            }).unwrap()
-            const sshConfig = await getSshConfig({
-                deviceIp: currentDevice
-            }).unwrap()
-            console.log({
-                title: `批量更新-${currentDevice}`,
-                description: "切换固件版本",
-                taskType: "ssh",
-                script: values.updateScript,
-                templateVariables: {
-                    FILE_URL: fileUrlRes.url
-                },
-                environment: {...sshConfig, host: currentDevice},
-                parallel: 1
-            })
-            await createConcurrentTask({
-                title: `批量更新-${currentDevice}`,
-                description: "切换固件版本",
-                taskType: "ssh",
-                script: values.updateScript,
-                templateVariables: {
-                    FILE_URL: fileUrlRes.url
-                },
-                environment: {...sshConfig, host: currentDevice},
-                parallel: 1
-            })
+            try {
+                const fileUrlRes = await getFileUrl({
+                    bucketName: "firmwares",
+                    objectName: values.firmwareList
+                }).unwrap()
+                const sshConfig = await getSshConfig({
+                    deviceIp: currentDevice
+                }).unwrap()
+                await createConcurrentTask({
+                    title: `批量更新-${currentDevice}`,
+                    description: "切换固件版本",
+                    taskType: "ssh",
+                    script: values.updateScript,
+                    templateVariables: {
+                        FILE_URL: fileUrlRes.url
+                    },
+                    environment: {...sshConfig, host: currentDevice},
+                    parallel: 1
+                }).unwrap()
+                message.success(`设备${currentDevice}加入更新队列成功！`)
+            } catch (e: any) {
+                console.log(e)
+            }
         }
     }
     return (

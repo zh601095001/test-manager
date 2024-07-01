@@ -13,7 +13,7 @@ export default function RootLayout({children,}: Readonly<{ children: React.React
         <body>
         <Provider store={store}>
             <WebSocketProvider>
-                        {children}
+                {children}
             </WebSocketProvider>
         </Provider>
         </body>

@@ -3,7 +3,7 @@ import React, {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {selectCurrentUser, setCredentials, selectCurrentRoles} from "@/features/auth/authSlice";
 import {useRouter} from 'next/navigation'; // 确保正确引用next/router
-import {Avatar, Dropdown, message, Modal, Form, Input} from "antd";
+import {Avatar, Dropdown, message, Modal, Form, Input, Empty} from "antd";
 import {
     DashboardOutlined,
     DatabaseOutlined,
@@ -16,6 +16,8 @@ import type {MenuProps} from 'antd';
 import {useLogoutMutation, useRefreshTokenMutation} from "@/services/auth";
 import {useAddDeviceMutation} from "@/services/devicePool";
 import {useWebSocket} from "@/components/WebsocketProvider";
+import {useGetTasksMutation} from "@/services/task";
+import styles from "./index.module.scss"
 
 export default function AuthLayout({children}: {
     children: React.ReactNode
@@ -30,15 +32,18 @@ export default function AuthLayout({children}: {
     const [form] = Form.useForm()
     const wsContext = useWebSocket()
     const [refreshToken] = useRefreshTokenMutation()
+    const [taskItems, setTaskItems] = useState<MenuProps['items']>([])
+    const [getTasks] = useGetTasksMutation()
+
 
     useEffect(() => {
-        (async ()=>{
-            try{
+        (async () => {
+            try {
                 const data = await refreshToken().unwrap();
-                if (data.accessToken){
+                if (data.accessToken) {
                     dispatch(setCredentials(data));
                 }
-            }catch (e){
+            } catch (e) {
                 message.error("认证失败或登录信息已经过期，请重新登录！")
                 router.push("/login");
             }
@@ -78,8 +83,8 @@ export default function AuthLayout({children}: {
             icon: <LogoutOutlined/>,
         },
     ];
-    // @ts-ignore
-    const handleMenuClick = ({key}) => {
+
+    const handleMenuClick = ({key}: { key: string }) => {
         switch (key) {
             case "3":
                 setIsModalOpen(true)
@@ -99,6 +104,67 @@ export default function AuthLayout({children}: {
             setIsModalOpen(false)
         })
     }
+    const handleTaskMenuClick = async () => {
+        const tasks = await getTasks({
+            title: "(switchFirmware|批量更新)",
+            limit: 100
+        }).unwrap()
+        console.log(tasks[0])
+        const taskItems = tasks.map((task: any) => {
+            const {createdAt} = task
+            const createdAtDate = new Date(createdAt)
+            const createdAtDateStr = createdAtDate.toLocaleString("zh-CN", {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: false,
+                timeZone: "Asia/Shanghai" // 设置时区为 GMT+8
+            });
+            const currentTime = new Date();
+            const timeDiff = currentTime.getTime() - createdAtDate.getTime();
+            const hours = Math.max(0, Math.floor(timeDiff / (1000 * 60 * 60)));
+            const minutes = Math.max(0, Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60)));
+            const seconds = Math.max(0, Math.floor((timeDiff % (1000 * 60)) / 1000));
+            const raw_seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+            // @ts-ignore
+            let iconSvg = {
+                // 'pending' | 'running' | 'completed' | 'failed'
+                "pending": "pending.svg",
+                "running": "running.svg",
+                "failed": "failed.svg",
+                "completed": "finished.svg"
+            }[task.status]
+            if (raw_seconds < 0) {
+                iconSvg = "pending.svg"
+            }
+            return {
+                key: task._id,
+                label: (
+                    <div style={{}}>
+                        <div style={{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            width: "80%"
+                        }}
+                        >
+                            {task.title}
+                        </div>
+                        <div style={{fontSize: 10, color: "#d8d8d8"}}>
+                            <span>创建于:{createdAtDateStr}</span>
+                            <span
+                                style={{marginLeft: 10}}
+                            >
+                                用时:{`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`}
+                            </span>
+                        </div>
+                    </div>
+                ),
+                icon: <img src={iconSvg} width={20} alt=""/>,
+            }
+        })
+        setTaskItems(taskItems)
+    }
 
     return (
         <>
@@ -114,17 +180,47 @@ export default function AuthLayout({children}: {
                     <DashboardOutlined style={{fontSize: 20, marginRight: 10}}/>
                     设备池管理
                 </span>
-                <Dropdown
-                    menu={{items, onClick: handleMenuClick}}
-                    trigger={["click"]}
-                    placement="bottomRight"
-                    overlayStyle={{width: 150}}
-                >
-                    <div style={{display: "flex", alignItems: "center"}}>
-                        <Avatar size="default" icon={<UserOutlined/>}/>
-                        <span style={{marginLeft: 10}}>{user}</span>
-                    </div>
-                </Dropdown>
+                <div style={{display: "flex", alignItems: "center"}}>
+                    <Dropdown
+                        overlayClassName={styles.taskItemList}
+                        menu={{items: taskItems}}
+                        trigger={["click"]}
+                        placement="bottomCenter"
+                        overlayStyle={{width: 300}}
+                        dropdownRender={(originNode) => {
+                            console.log(originNode)
+                            // @ts-ignore
+                            if (!originNode?.props?.items?.length) {
+                                return <div style={{
+                                    height: 450,
+                                    background: "white",
+                                    boxShadow: "0 6px 16px 0 rgba(0, 0, 0, 0.08),0 3px 6px -4px rgba(0, 0, 0, 0.12),0 9px 28px 8px rgba(0, 0, 0, 0.05)",
+                                    borderRadius: 8,
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center"
+                                }}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无任务"/></div>
+                            }
+                            return originNode
+                        }}
+                    >
+                        <div style={{display: "flex", alignItems: "center"}} onClick={handleTaskMenuClick}>
+                            <img src="task.svg" alt="" width={30}/>
+                            <span style={{marginRight: 40}}>任务</span>
+                        </div>
+                    </Dropdown>
+                    <Dropdown
+                        menu={{items, onClick: handleMenuClick}}
+                        trigger={["click"]}
+                        placement="bottomCenter"
+                        overlayStyle={{width: 150}}
+                    >
+                        <div style={{display: "flex", alignItems: "center"}}>
+                            <Avatar size="default" icon={<UserOutlined/>}/>
+                            <span style={{marginLeft: 10}}>{user}</span>
+                        </div>
+                    </Dropdown>
+                </div>
             </div>
             <div style={{width: "100%", padding: "10px 50px", boxSizing: "border-box"}}>
                 {children}

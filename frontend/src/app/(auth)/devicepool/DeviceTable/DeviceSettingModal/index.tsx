@@ -1,9 +1,9 @@
 import React from 'react';
 import {Button, Form, Modal, Switch, Tabs, TabsProps} from "antd";
 import type {ModalProps} from 'antd';
-import UpdateDeviceFirmwareForm from "../RefreshDeviceFirmwareForm";
-import SwitchDeviceFirmwareForm from "@/components/SwitchDeviceFirmwareForm";
-import DeviceLoginForm from "../DeviceSSHForm";
+import UpdateDeviceFirmwareForm from "./RefreshDeviceFirmwareForm";
+import SwitchDeviceFirmwareForm from "./SwitchDeviceFirmwareForm";
+import DeviceLoginForm from "./DeviceSSHForm";
 
 interface Device {
     deviceName: string;

@@ -1,6 +1,6 @@
-import DeviceTable from "@/components/DeviceTable";
-import Legend from "@/components/Legend";
-import HarborList from "@/components/HarborList";
+import DeviceTable from "./DeviceTable";
+import Legend from "./Legend";
+import HarborList from "./HarborList";
 
 export default function Home() {
 

@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {Form, Input, InputRef} from "antd";
-import {EditableContext} from "@/components/DeviceTable/context";
+import {EditableContext} from "@/context";
 
 
 interface Item {

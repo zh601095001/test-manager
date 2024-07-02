@@ -3,8 +3,8 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {selectDevices} from "@/features/websocket/websocketSlice";
 import {Button, Modal, Popconfirm, Table, Form, Input} from "antd"
-import EditableRow from "@/components/DeviceTable/EditableRow";
-import EditableCell from "@/components/DeviceTable/EditableCell";
+import EditableRow from "./EditableRow";
+import EditableCell from "./EditableRow/EditableCell";
 import {selectCurrentRoles, selectCurrentUser} from "@/features/auth/authSlice";
 import {
     useLockByDeviceIpMutation,
@@ -12,8 +12,8 @@ import {
     useRemoveDeviceByIpMutation, useUpdateDeviceMutation
 } from "@/services/devicePool";
 import {SettingOutlined} from "@ant-design/icons";
-import DeviceSettingModal from "@/components/DeviceSettingModal";
-import DevicesSettingModal from "@/components/DevicesSettingModal";
+import DeviceSettingModal from "./DeviceSettingModal";
+import DevicesSettingModal from "./DevicesSettingModal";
 
 // 定义设备对象的接口
 interface Device {

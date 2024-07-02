@@ -26,6 +26,13 @@ services:
              else
                yarn start;
              fi'
+  redis:
+    image: redis:latest
+    container_name: redis_manager
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   frontend:
     build: ./frontend
@@ -57,3 +64,4 @@ services:
 
 volumes:
   mongo-data:
+  redis_data:

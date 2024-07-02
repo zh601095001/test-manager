@@ -28,8 +28,7 @@ import emailRoutes from "./routes/emailRoutes";
 import harborRoutes from "./routes/harborRoutes";
 import concurrentTaskRoutes from "./routes/concurrentTaskRoutes";
 import {errorHandler} from "./errorHandler/errorHandler";
-import startConcurrentTaskAgenda from "./schedulers/concurrentTask";
-import startSequentialTaskAgenda from "./schedulers/sequentialTask";
+import initializeTasks from "./schedulers/concurrentTask";
 import {initializeDeviceSettings} from "./services/devicesSettingService";
 import deviceSettingsRoutes from "./routes/deviceSettingsRoutes";
 
@@ -66,12 +65,7 @@ mongoose.connect(config.db.uri,)
         console.log('MongoDB connected')
         const server = app.listen(8080, "0.0.0.0", () => console.log('Server is running on http://localhost:8080'));
         handleUpgrade(server);
-        startConcurrentTaskAgenda().catch((err: Error) => {
-            console.error(err)
-        })
-        startSequentialTaskAgenda().catch((err: Error) => {
-            console.error(err)
-        })
+        initializeTasks()
         runTask()
         initializeDeviceSettings().catch((err: Error) => {
             console.error(err)

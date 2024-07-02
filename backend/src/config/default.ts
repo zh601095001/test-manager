@@ -48,6 +48,9 @@ interface AppConfig {
     passport: (passport: passport.PassportStatic) => void;
     JWT_SECRET: string,
     REFRESH_SECRET: string,
+    redis: {
+        uri: string
+    }
     // minio: any
 }
 
@@ -91,6 +94,9 @@ const configPassport = (passport: PassportStatic) => {
 const appConfig: AppConfig = {
     db: {
         uri: process.env.MONGODB_URL || 'mongodb://mongodb:27017/deviceManagement',
+    },
+    redis: {
+        uri: process.env.REDIS_URL || "redis://redis:6379"
     },
     swaggerOptions: {
         swaggerDefinition: {

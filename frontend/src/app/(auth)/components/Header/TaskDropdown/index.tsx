@@ -3,12 +3,11 @@ import styles from "@/app/(auth)/index.module.scss";
 import {Dropdown, Empty, type MenuProps} from "antd";
 import {useGetTasksMutation} from "@/services/task";
 import TaskDropdownItem from "@/app/(auth)/components/Header/TaskDropdown/TaskDropdownItem";
-import TaskDetailModal from "@/app/(auth)/components/Header/TaskDropdown/TaskDropdownItem/TaskDetailModal";
+import TaskDetailModal from "@/app/(auth)/components/Header/TaskDropdown/TaskDetailModal";
 
 function TaskDropdown() {
     const [taskItems, setTaskItems] = useState<MenuProps['items']>([])
     const [getTasks] = useGetTasksMutation()
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 
     const handleTaskMenuClick = async () => {
         const tasks = await getTasks({
@@ -45,7 +44,7 @@ function TaskDropdown() {
         <>
             <Dropdown
                 overlayClassName={styles.taskItemList}
-                menu={{items: taskItems, onClick: () => setIsModalOpen(true)}}
+                menu={{items: taskItems}}
                 trigger={["click"]}
                 placement="bottomCenter"
                 overlayStyle={{width: 300}}
@@ -73,7 +72,6 @@ function TaskDropdown() {
                     <span style={{marginRight: 40}}>任务</span>
                 </div>
             </Dropdown>
-            <TaskDetailModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}/>
         </>
 
     );

@@ -2,6 +2,7 @@ import path from "node:path";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    reactStrictMode: false,
     async rewrites() {
         return [
             {

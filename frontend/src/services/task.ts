@@ -48,6 +48,10 @@ interface GetTasksRequest {
     offset?: number;
 }
 
+interface GetTaskByIdRequest {
+    _id: string
+}
+
 export const taskApi = createApi({
     reducerPath: 'taskApi',
     baseQuery: baseQueryWithReauth,
@@ -66,10 +70,17 @@ export const taskApi = createApi({
                 params: params // 这将包括所有非空的查询参数，如 title, taskType, status, limit, offset
             })
         }),
+        getTaskById: builder.mutation<CreateTaskResponse, GetTaskByIdRequest>({
+            query: ({_id}) => ({
+                url: `concurrent/task/${_id}`,
+                method: 'GET',
+            })
+        })
     }),
 });
 
 export const {
     useCreateConcurrentTaskMutation,
-    useGetTasksMutation
+    useGetTasksMutation,
+    useGetTaskByIdMutation
 } = taskApi

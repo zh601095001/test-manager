@@ -4,10 +4,13 @@ import {Dropdown, Empty, type MenuProps} from "antd";
 import {useGetTasksMutation} from "@/services/task";
 import TaskDropdownItem from "@/app/(auth)/components/Header/TaskDropdown/TaskDropdownItem";
 import TaskDetailModal from "@/app/(auth)/components/Header/TaskDropdown/TaskDetailModal";
+import {useSelector} from "react-redux";
+import {selectRunningTasks} from "@/features/websocket/websocketSlice";
 
 function TaskDropdown() {
     const [taskItems, setTaskItems] = useState<MenuProps['items']>([])
     const [getTasks] = useGetTasksMutation()
+    const runningTasksCount = useSelector(selectRunningTasks)
 
     const handleTaskMenuClick = async () => {
         const tasks = await getTasks({
@@ -69,7 +72,7 @@ function TaskDropdown() {
                     onClick={handleTaskMenuClick}
                 >
                     <img src="task.svg" alt="" width={30}/>
-                    <span style={{marginRight: 40}}>任务</span>
+                    <span style={{marginRight: 40}}>{`任务(${runningTasksCount})`}</span>
                 </div>
             </Dropdown>
         </>

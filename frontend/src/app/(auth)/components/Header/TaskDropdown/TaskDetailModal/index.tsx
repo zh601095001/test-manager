@@ -19,29 +19,35 @@ function TaskDetailModal({isModalOpen, setIsModalOpen, taskId}: {
     const [prevStderrLength, setPrevStderrLength] = useState(0)
     const [status, setStatus] = useState<string>("");
     useEffect(() => {
-        const intervalId = setInterval(async () => {
-            const task = await getTaskById({_id: taskId}).unwrap()
-            const {stdout, stderr} = task
-            let newInput = "";
-            if (stdout && stdout.length > prevStdoutLength) {
-                const newOutput = stdout.slice(prevStdoutLength).join('\r\n') + '\r\n';
-                newInput += newOutput;
-                setPrevStdoutLength(stdout.length);
-            }
-            if (stderr && stderr.length > prevStderrLength) {
-                const newOutput = stderr.slice(prevStderrLength).join('\r\n') + '\r\n';
-                newInput += newOutput;
-                setPrevStderrLength(stderr.length);
-            }
+        let intervalId: NodeJS.Timeout;
 
-            if (newInput) {
-                setInput((prevInput) => prevInput + newInput);
-            }
-            setStatus(task.status);
-        }, 1000); // 每秒调用一次 API
+        if (isModalOpen) {
+            intervalId = setInterval(async () => {
+                const task = await getTaskById({_id: taskId}).unwrap();
+                const {stdout, stderr} = task;
+                let newInput = "";
+                if (stdout && stdout.length > prevStdoutLength) {
+                    const newOutput = stdout.slice(prevStdoutLength).join('\r\n') + '\r\n';
+                    newInput += newOutput;
+                    setPrevStdoutLength(stdout.length);
+                }
+                if (stderr && stderr.length > prevStderrLength) {
+                    const newOutput = stderr.slice(prevStderrLength).join('\r\n') + '\r\n';
+                    newInput += newOutput;
+                    setPrevStderrLength(stderr.length);
+                }
 
-        return () => clearInterval(intervalId);
-    }, [prevStdoutLength, prevStderrLength]);
+                if (newInput) {
+                    setInput((prevInput) => prevInput + newInput);
+                }
+                setStatus(task.status);
+            }, 1000); // 每秒调用一次 API
+        }
+
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [isModalOpen, taskId, prevStdoutLength, prevStderrLength, getTaskById]);
     let iconSvg = {
         "pending": "pending.svg",
         "running": "running.svg",
@@ -50,6 +56,7 @@ function TaskDetailModal({isModalOpen, setIsModalOpen, taskId}: {
     }[status]
     return (
         <Modal
+            destroyOnClose={true}
             width={"60%"}
             title={(
                 <div style={{display: "flex", justifyContent: "left", alignItems: "center"}}>

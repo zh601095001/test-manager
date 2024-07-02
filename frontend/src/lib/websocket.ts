@@ -1,5 +1,5 @@
 import {Dispatch} from 'redux';
-import {updateDevices, updateHarbors} from "@/features/websocket/websocketSlice";
+import {updateDevices, updateHarbors, updateRunningTaskCount} from "@/features/websocket/websocketSlice";
 
 class WebSocketService {
     private socket: WebSocket | null;
@@ -32,8 +32,10 @@ class WebSocketService {
             const message = JSON.parse(event.data);
             if (message.type === 'all-devices') {
                 this.dispatch(updateDevices(message.items));
-            }else if(message.type === "all-harbors"){
+            } else if (message.type === "all-harbors") {
                 this.dispatch(updateHarbors(message.items))
+            } else if (message.type === "all-running-tasks") {
+                this.dispatch(updateRunningTaskCount(message.items))
             }
         };
 

@@ -16,12 +16,14 @@ interface Device {
 interface WebSocketState {
     devices: Device[]
     hasFree: boolean
+    runningTaskCount: number;
     harbors: any[]
 }
 
 const initialState: WebSocketState = {
     devices: [],
     harbors: [],
+    runningTaskCount: 0,
     hasFree: true
 };
 export const websocketSlice = createSlice({
@@ -35,12 +37,15 @@ export const websocketSlice = createSlice({
         updateHarbors: (state, action: PayloadAction<Device[]>) => {
             state.harbors = action.payload;
         },
+        updateRunningTaskCount: (state, action: PayloadAction<{ count: number }>) => {
+            state.runningTaskCount = action.payload.count;
+        }
     },
 });
 
-export const {updateDevices, updateHarbors} = websocketSlice.actions;
+export const {updateDevices, updateHarbors, updateRunningTaskCount} = websocketSlice.actions;
 export const selectDevices = (state: any) => state.websocket.devices;
 export const selectHarbors = (state: any) => state.websocket.harbors;
-
+export const selectRunningTasks = (state: any) => state.websocket.runningTaskCount;
 export const selectHasFreeDevice = (state: any) => state.websocket.hasFree;
 export default websocketSlice.reducer;

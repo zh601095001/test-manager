@@ -18,12 +18,14 @@ function TaskDetailModal({isModalOpen, setIsModalOpen, taskId}: {
     const [prevStdoutLength, setPrevStdoutLength] = useState(0)
     const [prevStderrLength, setPrevStderrLength] = useState(0)
     const [status, setStatus] = useState<string>("");
+    const [taskTitle,setTaskTitle] = useState<string>("");
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
         if (isModalOpen) {
             intervalId = setInterval(async () => {
                 const task = await getTaskById({_id: taskId}).unwrap();
+                setTaskTitle(task.title);
                 const {stdout, stderr} = task;
                 let newInput = "";
                 if (stdout && stdout.length > prevStdoutLength) {
@@ -60,7 +62,7 @@ function TaskDetailModal({isModalOpen, setIsModalOpen, taskId}: {
             width={"60%"}
             title={(
                 <div style={{display: "flex", justifyContent: "left", alignItems: "center"}}>
-                    <span style={{marginRight: 10}}>任务详情</span>
+                    <span style={{marginRight: 10}}>任务{taskTitle}详情</span>
                     {
                         iconSvg ? (
                             <span style={{display: "flex", alignItems: "center", color: "#bcbbbb"}}>

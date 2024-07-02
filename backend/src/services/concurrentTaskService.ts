@@ -10,7 +10,7 @@ class ConcurrentTaskService {
     async createTask(data: CreateTaskData): Promise<IConcurrentTask> {
         const {parallel, ...extraData} = data
         if (parallel) {
-            const tasks = await this.queryTasks({title: data.title, status: {$ne: "completed"}})
+            const tasks = await this.queryTasks({title: data.title, status: { $nin: ["completed", "failed"]}})
             if (tasks.length >= parallel) {
                 throw Error("超过任务设定最大并行数")
             }

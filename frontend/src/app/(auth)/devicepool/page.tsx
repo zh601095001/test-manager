@@ -10,7 +10,6 @@ export default function Home() {
             <div style={{margin: 10,width:"100%"}}></div>
             <Legend/>
             <DeviceTable/>
-            <div id="notification-container"></div>
         </>
     );
 }

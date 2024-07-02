@@ -165,6 +165,9 @@ export default function AuthLayout({children}: {
         })
         setTaskItems(taskItems)
     }
+    const handleTaskMenuItemClick = ()=>{
+
+    }
 
     return (
         <>
@@ -183,7 +186,7 @@ export default function AuthLayout({children}: {
                 <div style={{display: "flex", alignItems: "center"}}>
                     <Dropdown
                         overlayClassName={styles.taskItemList}
-                        menu={{items: taskItems}}
+                        menu={{items: taskItems,onClick: handleTaskMenuItemClick}}
                         trigger={["click"]}
                         placement="bottomCenter"
                         overlayStyle={{width: 300}}
@@ -204,7 +207,10 @@ export default function AuthLayout({children}: {
                             return originNode
                         }}
                     >
-                        <div style={{display: "flex", alignItems: "center"}} onClick={handleTaskMenuClick}>
+                        <div
+                            style={{display: "flex", alignItems: "center"}}
+                            onClick={handleTaskMenuClick}
+                        >
                             <img src="task.svg" alt="" width={30}/>
                             <span style={{marginRight: 40}}>任务</span>
                         </div>

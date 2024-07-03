@@ -146,7 +146,7 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
                     environment: {...sshConfig, host: currentDevice},
                     parallel: 1
                 }).unwrap()
-                message.success(`设备${currentDevice}加入更新队列成功！`)
+                message.success(`设备${currentDevice}加入队列成功！`)
             } catch (e: any) {
                 console.log(e)
             }

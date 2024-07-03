@@ -2,11 +2,12 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {selectDevices} from "@/features/websocket/websocketSlice";
-import {Button, Modal, Popconfirm, Table, Form, Input} from "antd"
+import {Button, Modal, Popconfirm, Table, Form, Input, message} from "antd"
 import EditableRow from "./EditableRow";
 import EditableCell from "./EditableRow/EditableCell";
 import {selectCurrentRoles, selectCurrentUser} from "@/features/auth/authSlice";
 import {
+    useGetSshConfigMutation,
     useLockByDeviceIpMutation,
     useReleaseDeviceByIpMutation,
     useRemoveDeviceByIpMutation, useUpdateDeviceMutation
@@ -14,6 +15,7 @@ import {
 import {SettingOutlined} from "@ant-design/icons";
 import DeviceSettingModal from "./DeviceSettingModal";
 import DevicesSettingModal from "./DevicesSettingModal";
+import {useCreateConcurrentTaskMutation} from "@/services/task";
 
 // 定义设备对象的接口
 interface Device {
@@ -41,12 +43,14 @@ const DeviceTable: React.FC = () => {
     const [lockByDeviceIp] = useLockByDeviceIpMutation()
     const [removeDeviceByIp] = useRemoveDeviceByIpMutation()
     const [updateDevice] = useUpdateDeviceMutation()
+    const [createConcurrentTask] = useCreateConcurrentTaskMutation()
     const [form] = Form.useForm()
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentMaintainDeviceIp, setCurrentMaintainDeviceIp] = useState("")
     const [isDeviceSettingModalOpen, setDeviceSettingModalOpen] = useState(false);
     const [isDevicesSettingModalOpen, setDevicesSettingModalOpen] = useState(false)
     const [currentRecord, setCurrentRecord] = useState<Device | null>(null)
+    const [getSshConfig] = useGetSshConfigMutation()
     useEffect(() => {
         if (currentRecord) {
             setCurrentRecord(allDevices[allDevices.findIndex(device => device.deviceIp === currentRecord.deviceIp)])
@@ -205,6 +209,28 @@ const DeviceTable: React.FC = () => {
                                 </Popconfirm>
                             ) : ""
                         }
+
+                        <Popconfirm
+                            title="确定要重启?"
+                            okText="确认"
+                            cancelText="取消"
+                            onConfirm={async () => {
+                                const sshConfig = await getSshConfig({
+                                    deviceIp: deviceIp
+                                }).unwrap()
+                                await createConcurrentTask({
+                                    title: `重启PLC-${deviceIp}`,
+                                    description: "切换固件版本",
+                                    taskType: "ssh",
+                                    script: "reboot",
+                                    environment: {...sshConfig, host: deviceIp},
+                                    parallel: 1
+                                }).unwrap()
+                                message.success(`设备${deviceIp}加入队列成功！`)
+                            }}
+                        >
+                            <Button type="primary" danger style={{marginRight: 10}}>重启PLC</Button>
+                        </Popconfirm>
                     </div>
                 ) : null
             },

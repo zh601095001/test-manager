@@ -18,7 +18,7 @@ function TaskDetailModal({isModalOpen, setIsModalOpen, taskId}: {
     const [prevStdoutLength, setPrevStdoutLength] = useState(0)
     const [prevStderrLength, setPrevStderrLength] = useState(0)
     const [status, setStatus] = useState<string>("");
-    const [taskTitle,setTaskTitle] = useState<string>("");
+    const [taskTitle, setTaskTitle] = useState<string>("");
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
@@ -40,9 +40,12 @@ function TaskDetailModal({isModalOpen, setIsModalOpen, taskId}: {
                 }
 
                 if (newInput) {
-                    setInput((prevInput) => prevInput + newInput);
+                    setInput(newInput);
                 }
                 setStatus(task.status);
+                if (task.status === "failed" || task.status === "completed") {
+                    clearInterval(intervalId)
+                }
             }, 1000); // 每秒调用一次 API
         }
 

@@ -33,7 +33,6 @@ import {initializeDeviceSettings} from "./services/devicesSettingService";
 import deviceSettingsRoutes from "./routes/deviceSettingsRoutes";
 
 const app = express();
-
 app.use(morgan('combined'));
 app.use(bodyParser.json({limit: '1000mb'}));
 app.use(bodyParser.urlencoded({extended: true, limit: '1000mb'}));

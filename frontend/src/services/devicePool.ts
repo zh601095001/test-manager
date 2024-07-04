@@ -111,6 +111,7 @@ export const devicePoolApi = createApi({
             query: ({deviceIp, ...extras}: {
                 deviceIp: string;
                 objectName?: string;
+                installFlag?: boolean
             }) => ({
                 url: `device/${deviceIp}/switch-firmware/current`,
                 method: "PUT",

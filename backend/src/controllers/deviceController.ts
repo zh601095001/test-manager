@@ -227,31 +227,35 @@ const rmSwitchFirmwareListItem = async (req: Request, res: Response): Promise<vo
 const setCurrentSwitchFirmwareListItem = async (req: Request, res: Response): Promise<void> => {
     try {
         const {device_ip: deviceIp} = req.params;
-        const {objectName} = req.body;
-        const device = await deviceService.getDevice(deviceIp)
-        const config = {
-            host: deviceIp,
-            port: device.sshConfig.port as number,
-            username: device.sshConfig.username as string,
-            password: device.sshConfig.password as string
+        const {objectName,installFlag} = req.body;
+        let message = "切换固件版本成功,请点击安装进行安装并手动重启！"
+        if (installFlag){
+            const device = await deviceService.getDevice(deviceIp)
+            const config = {
+                host: deviceIp,
+                port: device.sshConfig.port as number,
+                username: device.sshConfig.username as string,
+                password: device.sshConfig.password as string
+            }
+            const FILE_URL = await fileService.getFileUrl(objectName, "firmwares")
+            const templateVariables = {
+                FILE_URL
+            }
+            const title = `switchFirmware-${deviceIp}`
+            await ConcurrentTaskService.createTask({
+                title,
+                description: "切换固件版本",
+                taskType: "ssh",
+                script: device.switchFirmware.switchScript,
+                templateVariables: new Map(Object.entries(templateVariables)),
+                environment: new Map(Object.entries(config)),
+                parallel: 1
+            })
+            message = "正在安装固件中,请前往任务列表查看安装详情。"
         }
-        const FILE_URL = await fileService.getFileUrl(objectName, "firmwares")
-        const templateVariables = {
-            FILE_URL
-        }
-        const title = `switchFirmware-${deviceIp}`
-        await ConcurrentTaskService.createTask({
-            title,
-            description: "切换固件版本",
-            taskType: "ssh",
-            script: device.switchFirmware.switchScript,
-            templateVariables: new Map(Object.entries(templateVariables)),
-            environment: new Map(Object.entries(config)),
-            parallel: 1
-        })
         await deviceService.setCurrentSwitchFirmwareListItem(deviceIp, objectName);
         res.status(200).json({
-            message: "切换固件版本成功！",
+            message: message,
         });
     } catch (error: any) {
         res.status(500).send({

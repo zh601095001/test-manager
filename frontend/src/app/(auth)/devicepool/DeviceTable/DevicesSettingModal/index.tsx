@@ -146,6 +146,10 @@ function DevicesSettingModal({devices, setOpen, ...modalProps}: DeviceSettingMod
                     environment: {...sshConfig, host: currentDevice},
                     parallel: 1
                 }).unwrap()
+                await setCurrentSwitchFirmwareListItem({
+                    deviceIp: currentDevice,
+                    objectName: values.firmwareList,
+                }).unwrap()
                 message.success(`设备${currentDevice}加入队列成功！`)
             } catch (e: any) {
                 console.log(e)

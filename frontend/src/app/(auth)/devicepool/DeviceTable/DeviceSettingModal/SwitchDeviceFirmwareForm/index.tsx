@@ -102,7 +102,8 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
         if (_currentObjectName) {
             const response = await setCurrentSwitchFirmwareListItem({
                 deviceIp: record.deviceIp,
-                objectName: _currentObjectName
+                objectName: _currentObjectName,
+                installFlag: true
             }).unwrap()
             message.success(response.message)
         }
@@ -140,7 +141,7 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
                                 }}
                             />
                         </Form.Item>
-                        <Button type="primary" style={{marginLeft: 10}} onClick={handleReInstall}>重新安装</Button>
+                        <Button type="primary" style={{marginLeft: 10}} onClick={handleReInstall}>安装</Button>
                     </Form.Item>
                 </Form.Item>
                 <Form.Item label="固件上传">

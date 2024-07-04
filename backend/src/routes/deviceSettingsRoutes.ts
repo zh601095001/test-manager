@@ -31,6 +31,7 @@ const router = express.Router();
  * @swagger
  * /device-settings:
  *   get:
+ *     tags: [设备批量设置]
  *     summary: Retrieve the current device settings
  *     description: Returns the device settings
  *     responses:
@@ -46,6 +47,7 @@ router.get('/', DeviceSettingsController.getDeviceSettings);
  * @swagger
  * /device-settings:
  *   put:
+ *     tags: [设备批量设置]
  *     summary: Update the device settings
  *     description: Updates and returns the device settings
  *     requestBody:
@@ -70,6 +72,7 @@ router.put('/', DeviceSettingsController.updateDeviceSettings);
  * @swagger
  * /device-settings/firmware:
  *   post:
+ *     tags: [设备批量设置]
  *     summary: Add a firmware to the firmware list
  *     description: Adds a new firmware entry to the device settings
  *     requestBody:
@@ -99,6 +102,7 @@ router.post('/firmware', DeviceSettingsController.addFirmware);
  * @swagger
  * /device-settings/firmware/{objectName}:
  *   delete:
+ *     tags: [设备批量设置]
  *     summary: Remove a firmware from the firmware list
  *     description: Removes a firmware entry from the device settings by object name
  *     parameters:

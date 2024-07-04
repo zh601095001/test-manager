@@ -12,7 +12,7 @@ const callbacks: Callbacks = {
         const _id = task._id
         const _task = await model.findById(_id)
         if (_task) {
-            const {stdout, error, info} = _task
+            const {stdout, error, info, status} = _task
             const deviceIp = info.get("deviceIp")
             const result = await Device.findOneAndUpdate(
                 {
@@ -42,7 +42,7 @@ const callbacks: Callbacks = {
                     {new: true}
                 );
             }
-            if (error) {
+            if (status === "failed") {
                 await Device.findOneAndUpdate(
                     {
                         deviceIp,

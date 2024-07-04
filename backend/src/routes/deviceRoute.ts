@@ -267,6 +267,12 @@ router.delete('/:device_ip/switch-firmware', deviceController.rmSwitchFirmwareLi
  *         schema:
  *           type: string
  *         description: The file name of the firmware to be set as current.
+ *       - in: body
+ *         name: installFlag
+ *         required: true
+ *         schema:
+ *           type: boolean
+ *         description: The file name of the firmware to be set as current.
  *     responses:
  *       200:
  *         description: Successfully set the current firmware item.

@@ -13,10 +13,13 @@ async function getEmail(test_id: string) {
     const suites: any = testreport.suites;
     const all_suites = suites.flatMap((suite: { suites: any; }) => suite.suites);
     const all_specs = all_suites.flatMap((all_suite: { specs: any; }) => all_suite.specs);
-    const infos = all_specs.map((spec: { title: any; ok: any; }) => ({
-        title: spec.title,
-        ok: spec.ok
-    }));
+    const infos = all_specs.map((spec: { title: any; ok: any; tests: any[] }) => {
+        const isOk = spec.tests.some((test: any) => test.status === "expected")
+        return {
+            title: spec.title,
+            ok: isOk
+        }
+    });
 
     // 计算统计数据
     const passed = infos.filter((info: { ok: any; }) => info.ok).length;

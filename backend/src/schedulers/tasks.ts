@@ -57,6 +57,46 @@ async function clearAllLockedDevice() {
     }
 }
 
+async function clearStaleLockedDevices() {
+    const now = new Date();
+    const devices = await Device.aggregate([
+        {
+            $addFields: {
+                durationInSeconds: {
+                    $cond: {
+                        if: { $gt: ["$lockTime", null] },
+                        then: {
+                            $divide: [
+                                { $subtract: [now, "$lockTime"] },
+                                1000
+                            ]
+                        },
+                        else: null
+                    }
+                }
+            }
+        },
+        {
+            $match: {
+                status: "locked",
+                comment: /自动化测试/,
+                durationInSeconds: { $gt: 1800 }
+            }
+        }
+    ]);
+    for (const device of devices) {
+        await Device.updateOne(
+            { _id: device._id },
+            {
+                status: "unlocked",
+                user: "",
+                lockTime: null,
+                comment: null
+            }
+        );
+    }
+}
+
 async function fetchHarborsAndUpdate() {
     try {
         const harborHost = "repository.bxplc.cn";
@@ -79,13 +119,13 @@ async function fetchHarborsAndUpdate() {
     } catch (e) {
         console.log(e)
     }
-
 }
 
 export default function () {
     cron.schedule('* * * * *', async () => {
         await fetchDevicesAndUpdateFirmware();
         await fetchHarborsAndUpdate()
+        await clearStaleLockedDevices()
     });
     cron.schedule('0 2 * * *', async () => {
         await clearAllLockedDevice()

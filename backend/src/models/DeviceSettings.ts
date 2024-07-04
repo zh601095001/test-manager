@@ -1,5 +1,5 @@
-import mongoose, {Schema, Document} from "mongoose";
-import {IDevice} from "./types";
+import mongoose, {Schema} from "mongoose";
+import {IDeviceSettings} from "./types";
 
 
 const deviceSettingsSchema: Schema = new Schema({
@@ -14,6 +14,6 @@ const deviceSettingsSchema: Schema = new Schema({
 });
 
 
-const DeviceSettings = mongoose.model<IDevice>('DeviceSettings', deviceSettingsSchema);
+const DeviceSettings = mongoose.model<IDeviceSettings>('DeviceSettings', deviceSettingsSchema);
 
 export default DeviceSettings;

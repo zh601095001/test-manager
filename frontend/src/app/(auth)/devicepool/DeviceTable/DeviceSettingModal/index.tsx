@@ -28,12 +28,12 @@ function DeviceSettingModal({record, setOpen, ...modalProps}: DeviceSettingModal
     const items: TabsProps['items'] = [
         {
             key: '1',
-            label: '固件版本更新及切换',
+            label: '下位机包更新及切换',
             children: <SwitchDeviceFirmwareForm record={record}/>,
         },
         {
             key: '2',
-            label: '固件版本刷新',
+            label: '下位机包版本刷新',
             children: <UpdateDeviceFirmwareForm record={record}/>,
         },
         {

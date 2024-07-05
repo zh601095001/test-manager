@@ -111,7 +111,7 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
     return (
         <div>
             <Form form={form} {...layout} onValuesChange={handleValuesChange}>
-                <Form.Item label="切换固件" className={styles.switchDeviceFirmwareFormItemSwitchFirmwareSelect}>
+                <Form.Item label="切换下位机包" className={styles.switchDeviceFirmwareFormItemSwitchFirmwareSelect}>
                     <Form.Item wrapperCol={{span: 24}}>
                         <Form.Item name="currentObjectName">
                             <Select
@@ -144,7 +144,7 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
                         <Button type="primary" style={{marginLeft: 10}} onClick={handleReInstall}>安装</Button>
                     </Form.Item>
                 </Form.Item>
-                <Form.Item label="固件上传">
+                <Form.Item label="下位机包上传">
                     <Dragger {...props}>
                         <p className="ant-upload-drag-icon">
                             <InboxOutlined/>
@@ -155,7 +155,7 @@ function SwitchDeviceFirmwareForm({record}: { record: any }) {
                         </p>
                     </Dragger>
                 </Form.Item>
-                <Form.Item name="updateScript" label="固件安装脚本">
+                <Form.Item name="updateScript" label="下位机包安装脚本">
                     <CodeEditorForm
                         defaultLanguage="shell"
                         disableLanguageSwitch={true}

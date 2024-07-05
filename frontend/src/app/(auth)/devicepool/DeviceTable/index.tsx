@@ -74,7 +74,7 @@ const DeviceTable: React.FC = () => {
         {
             title: (
                 <div>
-                    <span>固件版本</span>
+                    <span>下位机版本</span>
                     <SettingOutlined style={{marginLeft: 8}} onClick={() => setDevicesSettingModalOpen(true)}/>
                 </div>
             ),

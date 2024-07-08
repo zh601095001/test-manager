@@ -23,8 +23,7 @@ class FileService {
         try {
             await this.minioClient.statObject(bucketName, objectName);
             return true;
-        } catch (error) {
-            // @ts-ignore
+        } catch (error:any) {
             if (error.code === 'NotFound') {
                 return false;
             }

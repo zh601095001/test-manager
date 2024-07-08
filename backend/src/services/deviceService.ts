@@ -97,8 +97,7 @@ const setRefreshFirmware = async (deviceIp: string, refreshFirmwareConfig: IRefr
             device.refreshFirmware.refreshScript = refreshFirmwareConfig.refreshScript;
         }
         await device.save();
-    } catch (error) {
-        // @ts-ignore
+    } catch (error:any) {
         throw new Error('Error updating refresh firmware settings: ' + error.message);
     }
 };
@@ -126,8 +125,7 @@ const setSwitchFirmware = async (deviceIp: string, firmwareData: ISwitchFirmware
         }
 
         await device.save();
-    } catch (error) {
-        // @ts-ignore
+    } catch (error:any) {
         throw new Error('Error updating switch firmware: ' + error.message);
     }
 };

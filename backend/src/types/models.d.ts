@@ -96,6 +96,19 @@ declare global {
             deviceFilter: string[];
         }
     }
+
+    interface IGitlabRunner extends Document {
+        runnerName: string;
+        runnerIp: string;
+        runnerPort: number;
+        status?: "pause" | "enable";
+        tags: string[];
+        comment?: string;
+        sshConfig?: {
+            username: string;
+            password: string;
+        };
+    }
 }
 
 export {};

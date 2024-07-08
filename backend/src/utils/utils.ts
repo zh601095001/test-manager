@@ -199,8 +199,7 @@ async function getHarborLatestImageVersion(
             return response.data[0].tags[0].name;
         }
         return null;
-    } catch (error) {
-        // @ts-ignore
+    } catch (error:any) {
         console.error('Error fetching the latest image version:', error.message);
         return null;
     }

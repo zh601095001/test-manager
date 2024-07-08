@@ -26,8 +26,7 @@ const Register: React.FC = () => {
             dispatch(setCredentials(user))
             message.success("注册成功")
             router.push("/devicepool")
-        } catch (err) {
-            // @ts-ignore
+        } catch (err:any) {
             message.error(err.data.toString())
         }
     };

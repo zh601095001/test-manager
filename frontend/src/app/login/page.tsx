@@ -26,7 +26,7 @@ const Login: React.FC = () => {
             message.success("登录成功")
             await router.push("/devicepool")
             wsContext?.connect()
-        } catch (err) {
+        } catch (error:any) {
             // @ts-ignore
             message.error("用户名或密码错误")
         }

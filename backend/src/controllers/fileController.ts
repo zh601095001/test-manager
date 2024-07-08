@@ -15,8 +15,7 @@ class FileController {
             const {objectName, url} = await fileService.uploadFile(req.file, bucketName);
 
             res.status(200).json({message: 'File uploaded successfully', objectName, url});
-        } catch (error) {
-            // @ts-ignore
+        } catch (error:any) {
             res.status(500).send({message: `Error uploading file: ${error.message}`});
         }
     }
@@ -28,8 +27,7 @@ class FileController {
             const objectName = req.params.objectName;
 
             await fileService.downloadFile(objectName, res, bucketName);
-        } catch (error) {
-            // @ts-ignore
+        } catch (error:any) {
             res.status(500).send({message: `Error downloading file: ${error.message}`});
         }
     }
@@ -39,8 +37,7 @@ class FileController {
         try{
             const url = await fileService.getFileUrl(objectName, bucketName)
             res.status(200).json({url})
-        }catch (error) {
-            // @ts-ignore
+        }catch (error:any) {
             res.status(500).send({message: `获取url失败: ${error.message}`});
         }
     }

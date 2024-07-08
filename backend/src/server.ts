@@ -32,6 +32,7 @@ import {errorHandler} from "./errorHandler/errorHandler";
 import initializeTasks from "./schedulers/concurrentTask";
 import {initializeDeviceSettings} from "./services/devicesSettingService";
 import deviceSettingsRoutes from "./routes/deviceSettingsRoutes";
+import gitlabRunnerRoutes from "./routes/gitlabRunnerRoutes";
 
 const app = express();
 app.use(morgan('combined'));
@@ -59,6 +60,7 @@ app.use(emailRoutes);
 app.use(harborRoutes)
 app.use("/concurrent", concurrentTaskRoutes)
 app.use("/device-settings", deviceSettingsRoutes)
+app.use(gitlabRunnerRoutes)
 app.use(errorHandler);
 mongoose.connect(config.db.uri,)
     .then(() => {

@@ -1,9 +1,5 @@
 import TestEntry, {ITestEntry} from "../models/TestEntry";
 
-interface TestData {
-    blob_urls?: string[];
-    status?: string;
-}
 
 async function createOrUpdateTestEntry(testId: string, data: TestData): Promise<any> {
     const existingEntry = await TestEntry.findOne({test_id: testId});

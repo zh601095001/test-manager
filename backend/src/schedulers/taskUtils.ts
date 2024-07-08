@@ -1,16 +1,14 @@
-import ConcurrentTask, {IConcurrentTask} from "../models/ConcurrentTask";
+import ConcurrentTask from "../models/ConcurrentTask";
 import {SSHStream} from "../utils/utils";
-import SequentialTask, {ISequentialTask} from "../models/SequentialTask";
 import mongoose from "mongoose";
 
-export async function executeSSH(_task: IConcurrentTask | ISequentialTask, type: "concurrent" | "sequential") {
+export async function executeSSH(_task: IConcurrentTask, type: "concurrent" | "sequential") {
     const taskId = _task._id;
     const models: Record<any, mongoose.Model<any>> = {
         "concurrent": ConcurrentTask,
-        "sequential": SequentialTask,
     };
     const currentModel = models[type];
-    const task = await currentModel.findById(taskId) as IConcurrentTask | ISequentialTask;
+    const task = await currentModel.findById(taskId) as IConcurrentTask;
     const {runtimeEnv, executionPath, script} = task;
     const environment = task.environment as Map<string, string | number>;
     const host = environment.get("host") as string;

@@ -1,5 +1,5 @@
 import * as DeviceSettingsService from '../services/devicesSettingService';
-import express, {Request, Response} from "express";
+import {Request, Response} from "express";
 
 // 获取设备设置
 export const getDeviceSettings = async (req: Request, res: Response) => {

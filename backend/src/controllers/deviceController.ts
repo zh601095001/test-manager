@@ -1,14 +1,6 @@
 import express, {Request, Response} from "express";
 import deviceService from "../services/deviceService";
 import Device from "../models/Device";
-import {
-    DeviceRequest,
-    LockDeviceRequest,
-    LockFreeDeviceRequest,
-    setDeviceSshRequest,
-    UpdateDeviceRequest
-} from "./types";
-import {IDevice} from "../models/types";
 import {findOneAndUpdate, getDateInUTC8} from "../utils/utils";
 import ConcurrentTaskService from "../services/concurrentTaskService";
 import {fileService} from "../services/fileService";

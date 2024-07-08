@@ -1,63 +1,18 @@
-import passport from 'passport';
-import {Strategy as LocalStrategy, IVerifyOptions} from 'passport-local';
-import {Strategy as JwtStrategy, ExtractJwt, VerifiedCallback} from 'passport-jwt';
-import User, {IUser} from '../models/User'; // 确保 User 模型有 IUser 接口
-import bcrypt from 'bcryptjs';
-import {config} from "dotenv"
-import * as process from "node:process";
-import path from "path";
 import {PassportStatic} from 'passport';
-
-const envPath = path.join(__dirname, '../../.env');
-
-config({
-    path: envPath
-})
-
-interface DbConfig {
-    uri: string;
-}
-
-interface SwaggerDefinition {
-    openapi: string;
-    info: {
-        title: string;
-        version: string;
-        description: string;
-    };
-    components: {
-        securitySchemes: {
-            bearerAuth: {
-                type: string;
-                scheme: string;
-                bearerFormat: string;
-            }
-        }
-    };
-    servers: any[]
-}
-
-interface SwaggerOptions {
-    swaggerDefinition: SwaggerDefinition;
-    apis: string[];
-}
-
-interface AppConfig {
-    db: DbConfig;
-    swaggerOptions: SwaggerOptions;
-    passport: (passport: passport.PassportStatic) => void;
-    JWT_SECRET: string,
-    REFRESH_SECRET: string,
-    redis: {
-        uri: string
-    }
-    // minio: any
-}
-
-const JWT_SECRET = process.env.JWT_SECRET || 'DB5ndHn0jEGvjzUoOxVZeCXvcZAMkyjIfj79sfbtS-w_2024-05-25T09:10:10.890366';
-const REFRESH_SECRET = process.env.REFRESH_SECRET || 'C2z_X_OTmAW-VkDIZg2Jqr33FevNQBPGz1NnN5jrd1E';
+import {Strategy as LocalStrategy} from 'passport-local';
+import {ExtractJwt, Strategy as JwtStrategy} from 'passport-jwt';
+import User from '../models/User'; // 确保 User 模型有 IUser 接口
+import bcrypt from 'bcryptjs';
+import * as process from "node:process";
+import {checkEnvVars} from "../utils/utils";
 
 
+checkEnvVars(["MINIO_ENDPOINT", "MINIO_ACCESS_KEY", "MINIO_SECRET_KEY", "MINIO_PORT", "JWT_SECRET", "REFRESH_SECRET", "REDIS_URL"])
+
+const JWT_SECRET = process.env.JWT_SECRET as string;
+const REFRESH_SECRET = process.env.REFRESH_SECRET as string;
+const MONGODB_URL = process.env.MONGODB_URL as string
+const REDIS_URL = process.env.REDIS_URL as string
 const configPassport = (passport: PassportStatic) => {
     // 使用本地策略进行用户认证
     passport.use(new LocalStrategy({
@@ -93,10 +48,10 @@ const configPassport = (passport: PassportStatic) => {
 
 const appConfig: AppConfig = {
     db: {
-        uri: process.env.MONGODB_URL || 'mongodb://mongodb:27017/deviceManagement',
+        uri: MONGODB_URL,
     },
     redis: {
-        uri: process.env.REDIS_URL || "redis://redis:6379"
+        uri: REDIS_URL
     },
     swaggerOptions: {
         swaggerDefinition: {

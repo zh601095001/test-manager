@@ -1,4 +1,4 @@
-import {executeSSHCommand, getHarborLatestImageVersion} from '../utils/utils'; // 引入SSH执行函数
+import {getHarborLatestImageVersion} from '../utils/utils'; // 引入SSH执行函数
 import Device from "../models/Device";
 import cron from "node-cron";
 import harborService from "../services/harborService";

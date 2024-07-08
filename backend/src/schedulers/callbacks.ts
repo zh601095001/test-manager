@@ -1,14 +1,12 @@
-import {IConcurrentTask} from "../models/ConcurrentTask";
-import {ISequentialTask} from "../models/SequentialTask";
 import mongoose from "mongoose";
 import Device from "../models/Device";
 
 interface Callbacks {
-    [key: string]: (task: IConcurrentTask | ISequentialTask, model: any) => Promise<any>;
+    [key: string]: (task: IConcurrentTask, model: any) => Promise<any>;
 }
 
 const callbacks: Callbacks = {
-    updateFirmware: async (task, model: mongoose.Model<IConcurrentTask | ISequentialTask>) => {
+    updateFirmware: async (task, model: mongoose.Model<IConcurrentTask>) => {
         const _id = task._id
         const _task = await model.findById(_id)
         if (_task) {

@@ -1,3 +1,4 @@
+/// <reference path="./types/global.d.ts" />
 import * as dotenv from 'dotenv';
 import path from 'path';
 
@@ -9,7 +10,7 @@ import express from "express";
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import mongoose from 'mongoose';
-import config from './config/default';
+import config from './config';
 import devicesRoutes from './routes/devicesRoutes';
 import deviceRoute from "./routes/deviceRoute";
 import {handleUpgrade} from './controllers/wsController';
@@ -69,5 +70,6 @@ mongoose.connect(config.db.uri,)
         initializeDeviceSettings().catch((err: Error) => {
             console.error(err)
         })
+        console.log("如报错，请检查mongodb、redis、minio连接是否正确...")
     })
     .catch(err => console.error('MongoDB connection error:', err));

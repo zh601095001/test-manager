@@ -1,9 +1,8 @@
-import fs, {createReadStream} from 'fs';
+import fs from 'fs';
 import path from 'path';
 import * as tar from 'tar';
-import {BUCKET_NAME, ENDPOINT, PORT} from "../config/minioConfig";
-import minioClient from '../config/minioConfig';
-import mime from 'mime-types';  // 引入 mime-types 库
+import minioClient, {BUCKET_NAME, MINIO_ENDPOINT, MINIO_PORT} from "../config/minioConfig";
+import mime from 'mime-types'; // 引入 mime-types 库
 import {getFileHash} from "../utils/utils";
 
 // Helper function to find 'index.html' recursively
@@ -64,7 +63,7 @@ const handleFileUpload = async (file: Express.Multer.File | string): Promise<str
     fs.unlinkSync(filePath);  // Delete the temporary uploaded file
     fs.rmSync(extractPath, {recursive: true, force: true}); // Delete the extracted directory
 
-    const minioUrl = `http://${ENDPOINT}:${PORT}/${BUCKET_NAME}/${fileHash}/index.html`;
+    const minioUrl = `http://${MINIO_ENDPOINT}:${MINIO_PORT}/${BUCKET_NAME}/${fileHash}/index.html`;
     return minioUrl;
 };
 

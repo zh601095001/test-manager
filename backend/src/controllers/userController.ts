@@ -1,10 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User, {IUser} from '../models/User'; // 假设您的用户模型保存在这个位置
+import User from '../models/User'; // 假设您的用户模型保存在这个位置
 import {Request, Response} from 'express';
 import {generateToken} from "../services/token";
-import config from "../config/default"
-import user from "../models/User";
+import config from "../config"
 
 interface TokenPayload {
     sub: string;

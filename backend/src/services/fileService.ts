@@ -1,5 +1,4 @@
 import {Client} from 'minio';
-import config from '../config/default';
 import minioClient, {BUCKET_NAME} from "../config/minioConfig";
 import {createHash} from 'crypto';
 import * as path from 'path';

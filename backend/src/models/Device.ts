@@ -1,5 +1,4 @@
-import mongoose, {Schema, Document} from "mongoose";
-import {IDevice} from "./types";
+import mongoose, {Schema} from "mongoose";
 import {formatDate, formatDuration} from "../utils/utils";
 
 const sshConfigSchema: Schema = new Schema({

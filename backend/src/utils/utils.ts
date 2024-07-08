@@ -3,11 +3,10 @@ import {format} from 'date-fns';
 import {Client, ConnectConfig} from 'ssh2';
 import {createHash} from "crypto";
 import {createReadStream} from "fs";
-import mongoose, {Document, Model, Query, Schema, UpdateQuery} from 'mongoose';
+import {Document, Model, Schema} from 'mongoose';
 import axios from "axios";
 import {Request} from 'express';
 import {EventEmitter} from 'events';
-import * as Buffer from "node:buffer";
 
 function formatDuration(seconds: number) {
     const hours = Math.floor(seconds / 3600);
@@ -24,19 +23,6 @@ function formatDate(date: Date): string {
     return format(date, 'yyyy/MM/dd HH:mm:ss');
 }
 
-
-interface SSHResult {
-    stdout: string;
-    stderr: string;
-    code: number | null;
-    signal: string | null;
-    error: string | null;
-}
-
-interface Config extends ConnectConfig {
-    executionPath?: string
-    runtimeEnv?: Map<string, string>
-}
 
 /**
  * Execute a command over SSH and return the results.
@@ -156,11 +142,6 @@ const getFileHash = (filePath: string): Promise<string> => {
 };
 
 
-interface UpdateOptions extends mongoose.QueryOptions {
-    delay?: number;  // Optional delay between retries
-}
-
-
 async function findOneAndUpdate<T extends Document>(
     model: Model<T>,
     query: Record<string, any>,
@@ -239,6 +220,14 @@ function renderScript(templateVariables: Map<string, string | number>, script: s
     }) + "\n";
 }
 
+function checkEnvVars(envVars: string[]): void {
+    for (let env of envVars) {
+        if (!process.env[env]) {
+            throw new Error(`${env} Required`);
+        }
+    }
+}
+
 export {
     formatDuration,
     getDateInUTC8,
@@ -248,5 +237,6 @@ export {
     findOneAndUpdate,
     getHarborLatestImageVersion,
     setPostUpdateMiddleware,
-    renderScript
+    renderScript,
+    checkEnvVars
 }

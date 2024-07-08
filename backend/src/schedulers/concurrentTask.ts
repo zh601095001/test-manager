@@ -3,7 +3,7 @@ import IORedis from 'ioredis';
 import ConcurrentTask from "../models/ConcurrentTask";
 import {executeSSH} from "./taskUtils";
 import {renderScript} from "../utils/utils";
-import appConfig from "../config/default";
+import appConfig from "../config";
 import callbacks from "./callbacks";
 
 const connection = new IORedis(appConfig.redis.uri, {

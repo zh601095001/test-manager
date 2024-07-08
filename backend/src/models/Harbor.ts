@@ -1,5 +1,4 @@
-import mongoose, {Schema, Document} from "mongoose";
-import {IDevice} from "./types";
+import mongoose, {Schema} from "mongoose";
 
 
 const harborSchema: Schema = new Schema({

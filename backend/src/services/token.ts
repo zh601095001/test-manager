@@ -1,6 +1,5 @@
-import {IUser} from "../models/User";
 import jwt from "jsonwebtoken";
-import config from "../config/default"
+import config from "../config"
 
 const generateToken = async (user: IUser) => {
     const accessToken = jwt.sign({sub: user._id, roles: user.roles}, config.JWT_SECRET, {expiresIn: '15m'});

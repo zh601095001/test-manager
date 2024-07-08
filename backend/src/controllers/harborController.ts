@@ -1,4 +1,4 @@
-import express, {Request, Response} from "express";
+import {Request, Response} from "express";
 import harborService from "../services/harborService";
 
 const getAllHarbors = async (req: Request, res: Response) => {

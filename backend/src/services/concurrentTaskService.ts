@@ -1,16 +1,12 @@
 // services/ConcurrentTaskService.ts
-import {IConcurrentTask} from './types';
 import ConcurrentTask from '../models/ConcurrentTask';
 
-interface CreateTaskData extends IConcurrentTask {
-    parallel?: number | undefined
-}
 
 class ConcurrentTaskService {
     async createTask(data: CreateTaskData): Promise<IConcurrentTask> {
         const {parallel, ...extraData} = data
         if (parallel) {
-            const tasks = await this.queryTasks({title: data.title, status: { $nin: ["completed", "failed"]}})
+            const tasks = await this.queryTasks({title: data.title, status: {$nin: ["completed", "failed"]}})
             if (tasks.length >= parallel) {
                 throw Error("超过任务设定最大并行数")
             }

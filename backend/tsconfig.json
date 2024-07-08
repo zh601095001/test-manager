@@ -7,14 +7,15 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "rootDir": ".",
-    "baseUrl": ".",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "baseUrl": "./"
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts",
+    "src/**/*.d.ts",
   ],
   "exclude": [
-    "node_modules",
+    "node_modules"
   ]
 }

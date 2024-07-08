@@ -1,13 +1,16 @@
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
+import {checkEnvVars} from "../utils/utils";
+
+const requiredEmailEnvVars = ["EMAIL_HOST", "EMAIL_PORT", "EMAIL_AUTH_USER", "EMAIL_AUTH_PASS"];
+checkEnvVars(requiredEmailEnvVars);
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.qq.com',
-    port: 465,
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT as string),
     secure: true, // true for 465, false for other ports
     auth: {
-        user: "601095001@qq.com",  // 你的 QQ 邮箱地址
-        pass: "mshnwblxawogbdih"  // 你的 QQ 邮箱授权码
+        user: process.env.EMAIL_AUTH_USER,  // 你的 QQ 邮箱地址
+        pass: process.env.EMAIL_AUTH_PASS   // 你的 QQ 邮箱授权码
     }
 });
-
-export default transporter
+export default transporter;

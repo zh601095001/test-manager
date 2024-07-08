@@ -7,20 +7,17 @@ import * as tar from 'tar';
 import TestEntry, {ITestEntry} from '../models/TestEntry';
 import {promisify} from 'util';
 import fileService from '../services/htmlReportService';
-// import pLimit from 'p-limit';
 import async from "async";
 
 import {PassThrough} from "stream";
-import * as process from "node:process";
-import {ENDPOINT} from "../config/minioConfig";
+import {MINIO_ENDPOINT} from "../config/minioConfig";
 
-// const limit = pLimit(10);
 const exec = promisify(execCallback);
 
 
 async function downloadFile(url: string, filepath: string): Promise<void> {
     const url_ = new URL(url)
-    url_.hostname = ENDPOINT
+    url_.hostname = MINIO_ENDPOINT
     url_.search = ""
     const response = await axios({
         url: url_.href,

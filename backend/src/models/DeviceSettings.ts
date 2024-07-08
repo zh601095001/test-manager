@@ -1,5 +1,4 @@
 import mongoose, {Schema} from "mongoose";
-import {IDeviceSettings} from "./types";
 
 
 const deviceSettingsSchema: Schema = new Schema({

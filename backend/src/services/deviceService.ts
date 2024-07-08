@@ -1,7 +1,5 @@
 import Device from "../models/Device";
 import {getDateInUTC8} from "../utils/utils";
-import {IDevice, ISSHConfig} from "../models/types";
-import {IRefreshFirmwareConfig, ISwitchFirmwareConfig, Status} from "./types";
 
 
 async function setDeviceLocked(device: IDevice, status: Status = "locked") {

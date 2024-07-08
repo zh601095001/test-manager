@@ -1,7 +1,6 @@
 import * as deviceController from "../controllers/deviceController";
 import * as express from "express";
 
-
 const router = express.Router();
 
 /**
@@ -12,6 +11,13 @@ const router = express.Router();
  *     description: Updates the SSH configuration details for a specific device using its IP address.
  *     tags:
  *       - 设备池
+ *     parameters:
+ *       - in: path
+ *         name: device_ip
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: IP address of the device
  *     requestBody:
  *       required: true
  *       content:
@@ -31,13 +37,6 @@ const router = express.Router();
  *                 type: string
  *                 description: Password for SSH login
  *                 example: admin123
- *     parameters:
- *       - in: path
- *         name: device_ip
- *         required: true
- *         schema:
- *           type: string
- *         description: IP address of the device
  *     responses:
  *       200:
  *         description: SSH configuration updated successfully
@@ -50,14 +49,14 @@ const router = express.Router();
  *                   type: string
  *                   example: "SSH configuration updated successfully"
  */
-router.put('/:device_ip/ssh-config', deviceController.setSshConfig)
+router.put('/:device_ip/ssh-config', deviceController.setSshConfig);
 
 /**
  * @swagger
  * /device/{device_ip}/ssh-config:
- *   post:
- *     summary: Update SSH configuration for a device
- *     description: Updates the SSH configuration details for a specific device using its IP address.
+ *   get:
+ *     summary: Retrieve SSH configuration for a device
+ *     description: Retrieves the SSH configuration details for a specific device using its IP address.
  *     tags:
  *       - 设备池
  *     parameters:
@@ -69,31 +68,31 @@ router.put('/:device_ip/ssh-config', deviceController.setSshConfig)
  *         description: IP address of the device
  *     responses:
  *       200:
- *         description: SSH configuration updated successfully
+ *         description: SSH configuration retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *            properties:
- *               port:
- *                 type: number
- *                 description: SSH port number
- *                 example: 22
- *               username:
- *                 type: string
- *                 description: Username for SSH login
- *                 example: admin
- *               password:
- *                 type: string
- *                 description: Password for SSH login
- *                 example: admin123
+ *               properties:
+ *                 port:
+ *                   type: number
+ *                   description: SSH port number
+ *                   example: 22
+ *                 username:
+ *                   type: string
+ *                   description: Username for SSH login
+ *                   example: admin
+ *                 password:
+ *                   type: string
+ *                   description: Password for SSH login
+ *                   example: admin123
  */
-router.get('/:device_ip/ssh-config', deviceController.getSshConfig)
+router.get('/:device_ip/ssh-config', deviceController.getSshConfig);
 
 /**
  * @swagger
  * /device/{device_ip}/refresh-firmware:
- *   post:
+ *   put:
  *     summary: Update refresh firmware configuration
  *     description: Updates the firmware refresh settings for a specified device by IP.
  *     tags: [设备设置]
@@ -127,11 +126,11 @@ router.get('/:device_ip/ssh-config', deviceController.getSshConfig)
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "Firmware refresh configuration updated successfully"
  *       500:
  *         description: Error updating firmware refresh configuration
  */
-router.put('/:device_ip/refresh-firmware', deviceController.setRefreshFirmware)
-
+router.put('/:device_ip/refresh-firmware', deviceController.setRefreshFirmware);
 
 /**
  * @swagger
@@ -182,35 +181,39 @@ router.put('/:device_ip/refresh-firmware', deviceController.setRefreshFirmware)
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "Firmware switch configuration updated successfully"
  *       500:
  *         description: Error updating switch firmware configuration
  */
-router.post('/:device_ip/switch-firmware', deviceController.setSwitchFirmware)
+router.post('/:device_ip/switch-firmware', deviceController.setSwitchFirmware);
 
 /**
  * @swagger
- * /device/{deviceIp}/switch-firmware:
+ * /device/{device_ip}/switch-firmware:
  *   put:
  *     summary: Adds a firmware item to the device's firmware list.
  *     description: Adds a firmware item based on the device IP.
  *     tags: [设备设置]
  *     parameters:
  *       - in: path
- *         name: deviceIp
+ *         name: device_ip
  *         required: true
  *         schema:
  *           type: string
  *         description: The IP address of the device.
- *       - in: body
- *         name: firmwareListItem
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             fileName:
- *               type: string
- *             objectName:
- *               type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fileName:
+ *                 type: string
+ *                 description: The name of the firmware file
+ *               objectName:
+ *                 type: string
+ *                 description: The object name in the storage system
  *     responses:
  *       200:
  *         description: Successfully added the firmware item.
@@ -221,20 +224,20 @@ router.put('/:device_ip/switch-firmware', deviceController.addSwitchFirmwareList
 
 /**
  * @swagger
- * /device/{deviceIp}/switch-firmware/{objectName}:
+ * /device/{device_ip}/switch-firmware/{object_name}:
  *   delete:
  *     summary: Removes a specific firmware item from the device's firmware list.
  *     description: Removes a firmware item based on the device IP and file name.
  *     tags: [设备设置]
  *     parameters:
  *       - in: path
- *         name: deviceIp
+ *         name: device_ip
  *         required: true
  *         schema:
  *           type: string
  *         description: The IP address of the device.
  *       - in: body
- *         name: objectName
+ *         name: object_name
  *         required: true
  *         schema:
  *           type: string
@@ -249,30 +252,31 @@ router.delete('/:device_ip/switch-firmware', deviceController.rmSwitchFirmwareLi
 
 /**
  * @swagger
- * /device/{deviceIp}/switch-firmware/current:
+ * /device/{device_ip}/switch-firmware/current:
  *   put:
  *     summary: Sets the current firmware item for the device.
  *     description: Sets the current firmware item based on the device IP and the specified file name.
  *     tags: [设备设置]
  *     parameters:
  *       - in: path
- *         name: deviceIp
+ *         name: device_ip
  *         required: true
  *         schema:
  *           type: string
  *         description: The IP address of the device.
- *       - in: body
- *         name: objectName
- *         required: true
- *         schema:
- *           type: string
- *         description: The file name of the firmware to be set as current.
- *       - in: body
- *         name: installFlag
- *         required: true
- *         schema:
- *           type: boolean
- *         description: The file name of the firmware to be set as current.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               objectName:
+ *                 type: string
+ *                 description: The file name of the firmware to be set as current.
+ *               installFlag:
+ *                 type: boolean
+ *                 description: Flag indicating whether to install the firmware.
  *     responses:
  *       200:
  *         description: Successfully set the current firmware item.
@@ -283,24 +287,28 @@ router.put('/:device_ip/switch-firmware/current', deviceController.setCurrentSwi
 
 /**
  * @swagger
- * /device/{deviceIp}/switch-firmware/script:
+ * /device/{device_ip}/switch-firmware/script:
  *   put:
  *     summary: Sets the switch script for the device's firmware.
  *     description: Sets the switch script for a device based on the device IP.
  *     tags: [设备设置]
  *     parameters:
  *       - in: path
- *         name: deviceIp
+ *         name: device_ip
  *         required: true
  *         schema:
  *           type: string
  *         description: The IP address of the device.
- *       - in: body
- *         name: switchScript
- *         required: true
- *         schema:
- *           type: string
- *         description: The script to set for the switch firmware.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               switchScript:
+ *                 type: string
+ *                 description: The script to set for the switch firmware.
  *     responses:
  *       200:
  *         description: Successfully set the switch script.
@@ -351,13 +359,13 @@ router.put('/:device_ip/switch-firmware/script', deviceController.setSwitchScrip
  *               objectName:
  *                 type: string
  *                 description: The object name in the storage system
- *               switchScript:
- *                 type: string
- *                 description: The script used to switch firmware
- *               currentObjectName:
- *                 type: string
- *                 description: The name of the currently active firmware file
+ *         switchScript:
+ *           type: string
+ *           description: The script used to switch firmware
+ *         currentObjectName:
+ *           type: string
+ *           description: The name of the currently active firmware file
  */
 router.get("/:device_ip/switch-firmware", deviceController.getSwitchInfo);
 
-export default router
+export default router;

@@ -60,7 +60,7 @@ const router = Router();
  */
 /**
  * @swagger
- * /gitlab-runners:
+ * /gitlab-runner:
  *   post:
  *     summary: Create a new Gitlab Runner
  *     tags: [GitlabRunners]
@@ -131,7 +131,7 @@ router.get('/gitlab-runners', gitlabRunnerController.getAllGitlabRunners);
 
 /**
  * @swagger
- * /gitlab-runners/{id}:
+ * /gitlab-runner/{id}:
  *   get:
  *     summary: Get a Gitlab Runner by ID
  *     tags: [GitlabRunners]
@@ -158,7 +158,7 @@ router.get('/gitlab-runner/:id', gitlabRunnerController.getGitlabRunnerById);
 
 /**
  * @swagger
- * /gitlab-runners/{id}:
+ * /gitlab-runner/{id}:
  *   put:
  *     summary: Update a Gitlab Runner by ID
  *     tags: [GitlabRunners]
@@ -213,7 +213,7 @@ router.put('/gitlab-runner/:id', gitlabRunnerController.updateGitlabRunner);
 
 /**
  * @swagger
- * /gitlab-runners/{id}:
+ * /gitlab-runner/{id}:
  *   delete:
  *     summary: Remove a Gitlab Runner by ID
  *     tags: [GitlabRunners]

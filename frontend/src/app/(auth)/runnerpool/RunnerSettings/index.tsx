@@ -1,6 +1,6 @@
 "use client"
 import React, {useState} from 'react';
-import {Form, Select} from "antd";
+import {Form, Input, Select} from "antd";
 
 function RunnerSettings() {
     const [options, setOptions] = useState()
@@ -94,6 +94,22 @@ function RunnerSettings() {
                     onChange={handleChange}
                     options={options}
                 />
+            </Form.Item>
+            <Form.Item
+                label="提交代码"
+                labelCol={{span: 4}}
+                wrapperCol={{span: 16}}
+                rules={[{required: true, message: '请输入设备名'}]}
+            >
+                <div style={{display: "flex"}}>
+                    <Form.Item style={{flexGrow: 1}}>
+                        <Select placeholder="ui-test分支"/>
+                    </Form.Item>
+                    <Form.Item style={{flexGrow: 1}}>
+                        <Select placeholder="auto-ui-test分支"/>
+                    </Form.Item>
+                </div>
+
             </Form.Item>
         </Form>
     );

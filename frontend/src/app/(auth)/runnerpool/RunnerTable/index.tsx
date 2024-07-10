@@ -1,10 +1,12 @@
 "use client"
-import React from 'react';
+import React, {useState} from 'react';
 import {useSelector} from "react-redux";
 import {Table} from "antd"
 import EditableRow from "./EditableRow";
 import EditableCell from "./EditableRow/EditableCell";
 import {selectCurrentRoles} from "@/features/auth/authSlice";
+import {PlusSquareOutlined} from "@ant-design/icons";
+import AddRunnerModel from "@/app/(auth)/runnerpool/RunnerTable/AddRunnerModel";
 
 
 type EditableTableProps = Parameters<typeof Table>[0];
@@ -12,6 +14,7 @@ type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
 
 const DeviceTable: React.FC = () => {
     const roles = useSelector(selectCurrentRoles)
+    const [isAddRunnerModelOpen, setIsAddRunnerModelOpen] = useState<boolean>(false)
     const source: any = []
     const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
         {
@@ -42,7 +45,24 @@ const DeviceTable: React.FC = () => {
             editable: !!(roles && roles.includes("admin"))
         },
         {
-            title: "操作",
+            title: (
+                <div style={{display: "flex"}}>
+                    <span>操作</span>
+                    <span
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            marginLeft: 20,
+                            color: "#1677ff!important",
+                            cursor: "pointer"
+                        }}
+                        onClick={() => setIsAddRunnerModelOpen(true)}
+                    >
+                        <PlusSquareOutlined style={{fontSize: 20,}}/>
+                        添加Runner
+                    </span>
+                </div>
+            ),
             dataIndex: 'operation',
             render: (_, record) => {
 
@@ -92,6 +112,7 @@ const DeviceTable: React.FC = () => {
                 rowKey="deviceIp"
                 pagination={{pageSize: 100, pageSizeOptions: [50, 100]}}
             />
+            <AddRunnerModel open={isAddRunnerModelOpen} setOpen={setIsAddRunnerModelOpen}/>
         </div>
     );
 };

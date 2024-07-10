@@ -1,6 +1,6 @@
 "use client"
 import React, {useState} from 'react';
-import {Form, Input, Select} from "antd";
+import {Button, Form, Input, Select} from "antd";
 
 function RunnerSettings() {
     const [options, setOptions] = useState()
@@ -105,9 +105,10 @@ function RunnerSettings() {
                     <Form.Item style={{flexGrow: 1}}>
                         <Select placeholder="ui-test分支"/>
                     </Form.Item>
-                    <Form.Item style={{flexGrow: 1}}>
+                    <Form.Item style={{flexGrow: 1, marginLeft: 5}}>
                         <Select placeholder="auto-ui-test分支"/>
                     </Form.Item>
+                    <Button type="primary" style={{marginLeft: 10}}>提交</Button>
                 </div>
 
             </Form.Item>

@@ -67,7 +67,7 @@ mongoose.connect(config.db.uri,)
         console.log('MongoDB connected')
         const server = app.listen(8080, "0.0.0.0", () => console.log('Server is running on http://localhost:8080'));
         handleUpgrade(server);
-        // initializeTasks()
+        initializeTasks()
         runTask()
         initializeDeviceSettings().catch((err: Error) => {
             console.error(err)

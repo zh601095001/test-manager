@@ -44,7 +44,7 @@ class FileService {
 
         const exists = await this.fileExists(bucketName, objectName);
         if (exists) {
-            const url = await this.getFileUrl(objectName);
+            const url = await this.getFileUrl(objectName,bucketName);
             return {objectName, url};
         }
 

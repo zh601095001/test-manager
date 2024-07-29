@@ -33,6 +33,7 @@ import initializeTasks from "./schedulers/concurrentTask";
 import {initializeDeviceSettings} from "./services/devicesSettingService";
 import deviceSettingsRoutes from "./routes/deviceSettingsRoutes";
 import gitlabRunnerRoutes from "./routes/gitlabRunnerRoutes";
+import integrationRoutes from "./routes/integrationRoutes";
 
 const app = express();
 app.use(morgan('combined'));
@@ -52,7 +53,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use('/devices', devicesRoutes);
 app.use("/device", deviceRoute);
-app.use(userRouters)
+app.use("/",userRouters)
 app.use('/files', fileRoutes);
 app.use(testEntryRoutes)
 app.use(reportSummaryRoutes)
@@ -61,6 +62,7 @@ app.use(harborRoutes)
 app.use("/concurrent", concurrentTaskRoutes)
 app.use("/device-settings", deviceSettingsRoutes)
 app.use(gitlabRunnerRoutes)
+app.use(integrationRoutes)
 app.use(errorHandler);
 mongoose.connect(config.db.uri,)
     .then(() => {

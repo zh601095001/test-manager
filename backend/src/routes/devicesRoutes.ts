@@ -22,6 +22,8 @@ const router = express.Router();
  *                 type: string
  *               status:
  *                 type: string
+ *               deviceName:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Successfully locked a random device for a specific purpose

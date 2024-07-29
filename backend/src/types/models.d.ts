@@ -37,6 +37,11 @@ declare global {
         switchFirmware: ISwitchFirmware
     }
 
+    interface IIntegration extends Document {
+        settings: string;
+        testid: string;
+    }
+
     interface IDeviceSettings extends Document {
         firmwareList: Array<{
             fileName: string;
@@ -90,11 +95,14 @@ declare global {
         password: string;
         roles: string[];
         refreshToken: string | null;
+        refreshTokens: string[]
         email: string | null;
         avatar: string;
         settings: {
             deviceFilter: string[];
         }
+        resetPasswordToken?: string | null; // 新增的字段，用于存储密码重置令牌
+        resetPasswordExpires?: Date | null; // 新增的字段，用于存储令牌过期时间
     }
 
     interface IGitlabRunner extends Document {

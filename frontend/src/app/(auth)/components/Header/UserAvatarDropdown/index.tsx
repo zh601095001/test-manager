@@ -6,14 +6,14 @@ import {useLogoutMutation} from "@/services/auth";
 import {useWebSocket} from "@/components/WebsocketProvider";
 import {useSelector} from "react-redux";
 import {selectCurrentRoles, selectCurrentUser} from "@/features/auth/authSlice";
+import {useUserQuery} from "@/services/profile";
 
 function UserAvatarDropdown({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen: (open: boolean) => void }) {
-    const user = useSelector(selectCurrentUser);
+    const {data: user, isLoading} = useUserQuery()
     const router = useRouter();
-    const roles = useSelector(selectCurrentRoles);
     const [logout] = useLogoutMutation();
     const wsContext = useWebSocket()
-    const isAdmin = roles && roles.includes("admin");
+    const isAdmin = user?.roles && user?.roles.includes("admin");
 
     const items: MenuProps['items'] = [
         {
@@ -49,6 +49,9 @@ function UserAvatarDropdown({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen
 
     const handleMenuClick = ({key}: { key: string }) => {
         switch (key) {
+            case "2":
+                router.push("/profile")
+                break;
             case "3":
                 setIsAddDeviceModalOpen(true)
                 break;
@@ -61,6 +64,7 @@ function UserAvatarDropdown({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen
                 break;
         }
     };
+    if (isLoading) return <div>Loading</div>
     return (
         <Dropdown
             menu={{items, onClick: handleMenuClick}}
@@ -69,8 +73,12 @@ function UserAvatarDropdown({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen
             overlayStyle={{width: 150}}
         >
             <div style={{display: "flex", alignItems: "center"}}>
-                <Avatar size="default" icon={<UserOutlined/>}/>
-                <span style={{marginLeft: 10}}>{user}</span>
+                <Avatar
+                    size="default"
+                    icon={!user?.avatar ? <UserOutlined/> : undefined}
+                    src={user?.avatar ? user.avatar : ""}
+                />
+                <span style={{marginLeft: 10}}>{user?.username}</span>
             </div>
         </Dropdown>
     );

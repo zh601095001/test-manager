@@ -31,6 +31,7 @@ interface RefreshTokenResponse {
 
 // 创建API服务
 export const authApi = createApi({
+    reducerPath: 'authApi',
     baseQuery: baseQueryWithReauth,
     endpoints: (builder) => ({
         login: builder.mutation<UserResponse, LoginRequest>({

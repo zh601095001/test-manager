@@ -28,6 +28,20 @@ function Header({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen: (open: boo
                 router.push("/runnerpool")
         }
     }
+    const pageTitle = (() => {
+        const pathnameMapping: any = {
+            "设备池管理": "/devicepool",
+            "Runner管理": "/runnerpool",
+            "个人信息": "/profile"
+        }
+        for (const key of Object.keys(pathnameMapping)) {
+            const pathnameValue = pathnameMapping[key]
+            if (pathname.startsWith(pathnameValue)) {
+                return key
+            }
+        }
+        return ""
+    })()
     return (
         <div style={{
             display: "flex",
@@ -42,8 +56,7 @@ function Header({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen: (open: boo
                     <span style={{display: "flex", alignItems: "center"}}>
                         <DashboardOutlined style={{fontSize: 20, marginRight: 10}}/>
                         {
-                            pathname.startsWith("/devicepool") ? "设备池管理" :
-                                pathname.startsWith("/runnerpool") ? "Runner管理" : ""
+                            pageTitle
                         }
                     </span>
                     <MenuOutlined

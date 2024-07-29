@@ -23,7 +23,7 @@ export async function executeSSH(_task: IConcurrentTask, type: "concurrent" | "s
     });
 
     sshStream.on('ready', () => {
-        console.log("SSH connection successfully established.");
+        // console.log("SSH connection successfully established.");
     });
 
     sshStream.on('data', async (line: string) => {

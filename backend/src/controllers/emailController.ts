@@ -1,6 +1,7 @@
 import transporter from "../config/mailConfig";
 import {Request, Response} from "express";
 import {getEmail} from "../services/emailServices"
+import fs from "fs";
 
 const sendEmail = async (req: Request, res: Response) => {
     const {test_id} = req.body;
@@ -16,7 +17,7 @@ const sendEmail = async (req: Request, res: Response) => {
     const emails = infos["emails"] as string[]
     try {
         let info = await transporter.sendMail({
-            from: `601095001@qq.com`,
+            from: process.env.EMAIL_AUTH_USER,
             to: emails,
             subject: "自动化测试报告",
             text: `自动化测试报告详见附件\n在线地址:${remote_url}\n通过:${passed}\n失败:${failed}\n通过率:${passRate}%`,

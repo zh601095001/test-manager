@@ -9,8 +9,11 @@ const transporter = nodemailer.createTransport({
     port: parseInt(process.env.EMAIL_PORT as string),
     secure: true, // true for 465, false for other ports
     auth: {
-        user: process.env.EMAIL_AUTH_USER,  // 你的 QQ 邮箱地址
-        pass: process.env.EMAIL_AUTH_PASS   // 你的 QQ 邮箱授权码
+        user: process.env.EMAIL_AUTH_USER,
+        pass: process.env.EMAIL_AUTH_PASS
+    },
+    tls: {
+        rejectUnauthorized: false
     }
 });
 export default transporter;

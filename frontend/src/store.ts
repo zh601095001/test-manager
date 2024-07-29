@@ -9,6 +9,7 @@ import {authApi} from "@/services/auth"
 import {deviceSettingsApi} from "@/services/deviceSettings";
 import {taskApi} from "@/services/task";
 import {filesApi} from "@/services/files";
+import {profileApi} from "@/services/profile";
 
 export const store = configureStore({
     reducer: {
@@ -20,10 +21,11 @@ export const store = configureStore({
         [deviceSettingsApi.reducerPath]: deviceSettingsApi.reducer,
         [taskApi.reducerPath]: taskApi.reducer,
         [filesApi.reducerPath]: filesApi.reducer,
+        [profileApi.reducerPath]: profileApi.reducer,
         auth: authReducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(devicePoolApi.middleware, authApi.middleware, taskApi.middleware, deviceSettingsApi.middleware, filesApi.middleware),
+        getDefaultMiddleware().concat(devicePoolApi.middleware, authApi.middleware, taskApi.middleware, deviceSettingsApi.middleware, filesApi.middleware, profileApi.middleware),
 
 });
 

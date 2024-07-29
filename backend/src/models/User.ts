@@ -8,12 +8,15 @@ const UserSchema = new mongoose.Schema<IUser>({
     username: {type: String, unique: true, required: true},
     password: {type: String, required: true},
     roles: [{type: String}],
-    refreshToken: {type: String, default: null},
+    refreshToken: {type: String, default: null}, // 弃用
+    refreshTokens: {type: [String], default: []},
     email: {type: String, default: null},
     avatar: {type: String},
     settings: {
         deviceFilters: [{type: Array}],
-    }
+    },
+    resetPasswordToken: { type: String, default: null }, // 新增的字段
+    resetPasswordExpires: { type: Date, default: null }   // 新增的字段
 });
 
 // 创建 mongoose 模型

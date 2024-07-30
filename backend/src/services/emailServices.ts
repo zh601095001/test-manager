@@ -5,7 +5,7 @@ import TestReport from "../models/ReportModel";
 import Papa from "papaparse";
 
 async function getEmail(test_id: string) {
-    const users = await User.find({email: {$ne: null}})
+    const users = await User.find({email: {$ne: null}, roles: "tester"})
     const test_entry = await TestEntry.findOne({test_id})
     const remote_url = test_entry?.remote_url
     const emails = users.map(user => user.email)

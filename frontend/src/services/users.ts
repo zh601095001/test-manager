@@ -68,6 +68,31 @@ export const usersApi = createApi({
                 method: 'DELETE',
             }),
             invalidatesTags: ["Users"]
+        }),
+        sendForgetPasswordEmail: builder.mutation<any, {
+            email: string,
+        }>({
+            query: ({email}) => ({
+                url: `/user/send-reset-password-email`,
+                method: 'POST',
+                body: {
+                    email,
+                    frontendUrl: window.location.origin
+                }
+            }),
+        }),
+        resetPassword: builder.mutation<any, {
+            token: string,
+            newPassword: string
+        }>({
+            query: ({token, newPassword}) => ({
+                url: `/user/reset-password`,
+                method: 'POST',
+                body: {
+                    token,
+                    newPassword
+                }
+            }),
         })
     }),
 });
@@ -78,5 +103,7 @@ export const {
     useUpdateEmailByAdminMutation,
     useUpdateRolesByAdminMutation,
     useUpdatePasswordByAdminMutation,
-    useDeleteUserByAdminMutation
+    useDeleteUserByAdminMutation,
+    useSendForgetPasswordEmailMutation,
+    useResetPasswordMutation
 } = usersApi;

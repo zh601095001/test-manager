@@ -2,53 +2,45 @@
 import React from 'react';
 import {Card, FormProps, message} from 'antd';
 import {Button, Form, Input} from 'antd';
-import Link from "next/link";
-import {RegisterRequest, useRegisterMutation} from "@/services/auth";
-import {setCredentials} from "@/features/auth/authSlice";
-import {useDispatch} from "react-redux";
+import {useResetPasswordMutation, useSendForgetPasswordEmailMutation} from "@/services/users";
 import {useRouter} from "next/navigation";
 
 type FieldType = {
-    username?: string;
     password?: string;
     confirmPassword?: string
 };
 
+export interface ResetPasswordRequest {
+    password: string;
+}
 
-const Register: React.FC = () => {
+const ResetPassword = ({params}: { params: { token: string } }) => {
+    const [resetPassword] = useResetPasswordMutation()
     const [passwordVisible, setPasswordVisible] = React.useState(false);
-    const [register] = useRegisterMutation()
-    const dispatch = useDispatch()
     const router = useRouter()
-    const onFinish: FormProps<RegisterRequest>['onFinish'] = async (values) => {
+
+    const onFinish: FormProps<ResetPasswordRequest>['onFinish'] = async ({password}) => {
         try {
-            const user = await register(values).unwrap()
-            dispatch(setCredentials(user))
-            message.success("注册成功")
-            router.push("/devicepool")
-        } catch (err:any) {
-            message.error(err.data.toString())
+            await resetPassword({newPassword: password, token: params.token}).unwrap()
+            message.success("密码重置成功！")
+            router.push("/login")
+        } catch (error: any) {
+            // @ts-ignore
+            message.error("重置密码失败！")
         }
     };
     return (
         <div style={{display: "flex", justifyContent: "center", alignItems: "center", width: "100vw", height: "100vh"}}>
-            <Card title={"设备池管理注册"}>
+            <Card title={"重置密码"}>
                 <Form
                     name="basic"
                     labelCol={{span: 4}}
                     wrapperCol={{span: 20}}
                     style={{minWidth: 600}}
+                    initialValues={{remember: true}}
                     onFinish={onFinish}
                     autoComplete="off"
                 >
-                    <Form.Item<FieldType>
-                        label="用户名"
-                        name="username"
-                        rules={[{required: true, message: '请输入用户名'}]}
-                    >
-                        <Input/>
-                    </Form.Item>
-
                     <Form.Item<FieldType>
                         label="密码"
                         name="password"
@@ -81,14 +73,12 @@ const Register: React.FC = () => {
                             visibilityToggle={{visible: passwordVisible, onVisibleChange: setPasswordVisible}}
                         />
                     </Form.Item>
+
                     <Form.Item labelCol={{span: 0}} wrapperCol={{offset: 8, span: 16}}>
 
                         <Button type="primary" htmlType="submit">
-                            注册
+                            重置密码
                         </Button>
-                        <span style={{marginLeft: 24}}>
-                            已有账号？去<Link href="/login">登录</Link>&nbsp;或&nbsp;<Link href="/forget-password">忘记密码</Link>
-                        </span>
                     </Form.Item>
                 </Form>
             </Card>
@@ -98,4 +88,4 @@ const Register: React.FC = () => {
     )
 }
 
-export default Register;
+export default ResetPassword;

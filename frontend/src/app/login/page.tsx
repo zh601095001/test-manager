@@ -66,7 +66,7 @@ const Login: React.FC = () => {
                             登录
                         </Button>
                         <span style={{marginLeft: 24}}>
-                            还没有账号？去<Link href="/register">注册</Link>
+                            还没有账号？去<Link href="/register">注册</Link>&nbsp;或&nbsp;<Link href="/forget-password">忘记密码</Link>
                         </span>
                     </Form.Item>
                 </Form>

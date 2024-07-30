@@ -219,9 +219,9 @@ const rmSwitchFirmwareListItem = async (req: Request, res: Response): Promise<vo
 const setCurrentSwitchFirmwareListItem = async (req: Request, res: Response): Promise<void> => {
     try {
         const {device_ip: deviceIp} = req.params;
-        const {objectName,installFlag} = req.body;
+        const {objectName, installFlag} = req.body;
         let message = "切换固件版本成功,请点击安装进行安装并手动重启！"
-        if (installFlag){
+        if (installFlag) {
             const device = await deviceService.getDevice(deviceIp)
             const config = {
                 host: deviceIp,
@@ -282,6 +282,80 @@ const getSwitchInfo = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
+const reInstallCurrentSwitchFirmwareAndWaitForComplete = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { device_ip: deviceIp } = req.params;
+
+        const device = await deviceService.getDevice(deviceIp);
+        const currentObjectName = device.switchFirmware.currentObjectName;
+        const config = {
+            host: deviceIp,
+            port: device.sshConfig.port as number,
+            username: device.sshConfig.username as string,
+            password: device.sshConfig.password as string
+        };
+        const FILE_URL = await fileService.getFileUrl(currentObjectName, "firmwares");
+        const templateVariables = {
+            FILE_URL
+        };
+        const title = `switchFirmware-${deviceIp}`;
+        const newTask = await ConcurrentTaskService.createTask({
+            title,
+            description: "切换固件版本",
+            taskType: "ssh",
+            script: device.switchFirmware.switchScript,
+            templateVariables: new Map(Object.entries(templateVariables)),
+            environment: new Map(Object.entries(config)),
+            parallel: 1
+        });
+
+        // 轮询任务状态
+        const interval = setInterval(async () => {
+            try {
+                if (req.destroyed) {
+                    clearInterval(interval);
+                    return;
+                }
+
+                const upToDateTask = await ConcurrentTaskService.getTaskById(newTask._id.toString());
+                if (upToDateTask) {
+                    if (upToDateTask.status === "completed") {
+                        clearInterval(interval);
+                        res.status(200).json({
+                            message: "任务已完成",
+                        });
+                    } else if (upToDateTask.status === "failed") {
+                        clearInterval(interval);
+                        res.status(500).json({
+                            message: "任务失败",
+                        });
+                    }
+                }
+            } catch (error: any) {
+                clearInterval(interval);
+                if (!res.headersSent) {
+                    res.status(500).json({
+                        message: "检查任务状态时出错",
+                        error: error.message
+                    });
+                }
+            }
+        }, 3000); // 每3秒轮询一次
+
+        // 监听请求关闭事件，清理轮询
+        req.on('close', () => {
+            clearInterval(interval);
+        });
+
+    } catch (error: any) {
+        if (!res.headersSent) {
+            res.status(500).send({
+                message: error.message
+            });
+        }
+    }
+};
+
 export {
     lockFreeDevice,
     lockDeviceByIp,
@@ -298,5 +372,6 @@ export {
     rmSwitchFirmwareListItem,
     setCurrentSwitchFirmwareListItem,
     setSwitchScript,
-    getSwitchInfo
+    getSwitchInfo,
+    reInstallCurrentSwitchFirmwareAndWaitForComplete
 }

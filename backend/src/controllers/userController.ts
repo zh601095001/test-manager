@@ -8,9 +8,9 @@ interface CustomError extends Error {
 }
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-    const {username, password} = req.body;
+    const {username, password,email} = req.body;
     try {
-        const {newUser, accessToken, roles} = await userService.registerUser(username, password);
+        const {newUser, accessToken, roles} = await userService.registerUser(username, password,email);
         res.status(201).json({message: 'User registered', accessToken, roles, username: newUser.username});
     } catch (e) {
         const error = e as CustomError;

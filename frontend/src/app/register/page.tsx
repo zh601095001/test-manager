@@ -10,10 +10,10 @@ import {useRouter} from "next/navigation";
 
 type FieldType = {
     username?: string;
+    email?: string;
     password?: string;
-    confirmPassword?: string
+    confirmPassword?: string;
 };
-
 
 const Register: React.FC = () => {
     const [passwordVisible, setPasswordVisible] = React.useState(false);
@@ -50,6 +50,17 @@ const Register: React.FC = () => {
                     </Form.Item>
 
                     <Form.Item<FieldType>
+                        label="邮箱"
+                        name="email"
+                        rules={[
+                            {required: true, message: '请输入邮箱'},
+                            {type: 'email', message: '请输入有效的邮箱地址'},
+                        ]}
+                    >
+                        <Input/>
+                    </Form.Item>
+
+                    <Form.Item<FieldType>
                         label="密码"
                         name="password"
                         rules={[{required: true, message: '请输入密码'}]}
@@ -65,14 +76,14 @@ const Register: React.FC = () => {
                         rules={[
                             {
                                 required: true,
-                                message: 'Please confirm your password!',
+                                message: '请确认您的密码！',
                             },
                             ({getFieldValue}) => ({
                                 validator(_, value) {
                                     if (!value || getFieldValue('password') === value) {
                                         return Promise.resolve();
                                     }
-                                    return Promise.reject(new Error('新输入的密码与之前不匹配'));
+                                    return Promise.reject(new Error('两次输入的密码不匹配'));
                                 },
                             }),
                         ]}
@@ -92,9 +103,7 @@ const Register: React.FC = () => {
                     </Form.Item>
                 </Form>
             </Card>
-
         </div>
-
     )
 }
 

@@ -1,5 +1,6 @@
 import * as deviceController from "../controllers/deviceController";
 import * as express from "express";
+import {reInstallCurrentSwitchFirmwareAndWaitForComplete} from "../controllers/deviceController";
 
 const router = express.Router();
 
@@ -367,5 +368,44 @@ router.put('/:device_ip/switch-firmware/script', deviceController.setSwitchScrip
  *           description: The name of the currently active firmware file
  */
 router.get("/:device_ip/switch-firmware", deviceController.getSwitchInfo);
+
+
+/**
+ * @swagger
+ * /device/{device_ip}/reinstall-firmware:
+ *   post:
+ *     tags: [设备设置]
+ *     summary: 重新安装交换机固件
+ *     description: 创建一个任务来重新安装指定设备的交换机固件，并轮询任务状态直到完成或失败。
+ *     parameters:
+ *       - in: path
+ *         name: device_ip
+ *         required: true
+ *         description: 设备的IP地址
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 固件重新安装任务已完成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 任务已完成
+ *       500:
+ *         description: 任务失败或检查任务状态时出错
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 任务失败
+ */
+router.post('/:device_ip/reinstall-firmware', reInstallCurrentSwitchFirmwareAndWaitForComplete);
 
 export default router;

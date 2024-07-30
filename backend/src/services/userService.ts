@@ -15,7 +15,7 @@ interface CustomError extends Error {
     message: string;
 }
 
-export const registerUser = async (username: string, password: string) => {
+export const registerUser = async (username: string, password: string, email: string) => {
     const hashedPassword = bcrypt.hashSync(password, 10);
     const userExists = await User.findOne({username});
     if (userExists) {
@@ -23,7 +23,7 @@ export const registerUser = async (username: string, password: string) => {
     }
     const adminUserExists = await User.findOne({roles: 'admin'});
     const roles = adminUserExists ? ['user'] : ['admin'];
-    const newUser = new User({username, password: hashedPassword, roles});
+    const newUser = new User({username, password: hashedPassword, roles, email});
     await newUser.save();
     const accessToken = await generateToken({user: newUser, forceRefreshToken: true});
     return {newUser, accessToken, roles};
@@ -159,7 +159,7 @@ export const updateRolesById = async (_id: string, roles: string[]) => {
 
 export const changePasswordById = async (_id: string, newPassword: string) => {
     // 验证旧密码是否正确
-     await User.findByIdAndUpdate(_id, {
+    await User.findByIdAndUpdate(_id, {
         $set: {
             password: bcrypt.hashSync(newPassword, 10)
         }

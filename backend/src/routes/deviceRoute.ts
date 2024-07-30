@@ -375,8 +375,8 @@ router.get("/:device_ip/switch-firmware", deviceController.getSwitchInfo);
  * /device/{device_ip}/reinstall-firmware:
  *   post:
  *     tags: [设备设置]
- *     summary: 重新安装交换机固件
- *     description: 创建一个任务来重新安装指定设备的交换机固件，并轮询任务状态直到完成或失败。
+ *     summary: 重新安装设备固件
+ *     description: 创建一个任务来重新安装指定设备的固件，并轮询任务状态直到完成或失败。
  *     parameters:
  *       - in: path
  *         name: device_ip

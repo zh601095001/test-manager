@@ -132,3 +132,38 @@ export const getCurrentUser = async (user: any) => {
     }
     return fullUser
 }
+
+export const getAllUser = async () => {
+    return User.find().select('-password -refreshToken -refreshTokens -resetPasswordToken -resetPasswordExpires').lean();
+}
+
+
+export const updateEmailById = async (_id: string, email: string) => {
+    await User.findByIdAndUpdate(_id, {
+        $set: {
+            email
+        }
+    })
+    return {message: '邮箱更新成功'};
+
+}
+
+export const updateRolesById = async (_id: string, roles: string[]) => {
+    await User.findByIdAndUpdate(_id, {
+        $set: {
+            roles
+        }
+    })
+    return {message: '权限更新成功'};
+}
+
+export const changePasswordById = async (_id: string, newPassword: string) => {
+    // 验证旧密码是否正确
+     await User.findByIdAndUpdate(_id, {
+        $set: {
+            password: bcrypt.hashSync(newPassword, 10)
+        }
+    })
+
+    return {message: '密码已成功更新'};
+}

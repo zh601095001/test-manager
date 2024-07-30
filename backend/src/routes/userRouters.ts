@@ -11,11 +11,13 @@ import {
     changePassword,
     sendPasswordResetEmail,
     resetPassword,
-    getCurrentUser
+    getCurrentUser,
+    getAllUser, updateEmailByAdmin, updateRolesByAdmin, updatePasswordByAdmin
 } from '../controllers/userController';
 import passport from "passport";
 
 const router = express.Router();
+
 /**
  * @swagger
  * components:
@@ -37,6 +39,47 @@ const router = express.Router();
  *       example:
  *         username: "admin"
  *         password: "admin"
+ */
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     FullUser:
+ *       type: object
+ *       required:
+ *         - username
+ *         - password
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: 用户的唯一标识符
+ *           example: 60c72b2f5f1b2c001f8e4c50
+ *         username:
+ *           type: string
+ *           description: 用户名
+ *           example: johndoe
+ *         roles:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: 用户角色列表
+ *           example: ["admin", "user"]
+ *         email:
+ *           type: string
+ *           description: 用户邮箱
+ *           example: johndoe@example.com
+ *         avatar:
+ *           type: string
+ *           description: 用户头像URL
+ *           example: "https://example.com/avatar.jpg"
+ *         settings:
+ *           type: object
+ *           properties:
+ *             deviceFilters:
+ *               type: array
+ *               items:
+ *                 type: object
+ *               description: 设备过滤器列表
  */
 /**
  * @swagger
@@ -120,30 +163,6 @@ router.post('/refresh-token', refreshToken);
  *         description: Unauthorized
  */
 router.delete('/user', passport.authenticate('jwt', {session: false}), deleteAccount);
-/**
- * @swagger
- * /user/{userId}:
- *   delete:
- *     summary: Delete a user account by admin
- *     tags: [用户]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: The user ID of the user to delete
- *     responses:
- *       204:
- *         description: User deleted successfully
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden, only admins can perform this action
- */
-router.delete('/user/:userId', passport.authenticate('jwt', {session: false}), deleteUser);
 
 
 /**
@@ -438,6 +457,285 @@ router.post('/user/reset-password', resetPassword);
  *       500:
  *         description: Internal server error
  */
-router.get('/user',passport.authenticate('jwt', {session: false}), getCurrentUser);
+router.get('/user', passport.authenticate('jwt', {session: false}), getCurrentUser);
 
+
+/**
+ * @swagger
+ * /admin/users:
+ *   get:
+ *     summary: 获取所有用户
+ *     tags: [admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 返回所有用户信息
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/FullUser'
+ *       401:
+ *         description: 未授权
+ *       403:
+ *         description: 权限不足
+ */
+router.get('/admin/users', passport.authenticate('jwt', {session: false}), getAllUser);
+
+
+/**
+ * @swagger
+ * /admin/user/update-email:
+ *   put:
+ *     summary: 管理员更新用户邮箱
+ *     description: 允许具有管理员权限的用户更新指定用户的电子邮箱。
+ *     tags:
+ *       - admin
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               _id:
+ *                 type: string
+ *                 description: 要更新邮箱的id
+ *                 example: asasfasfasf
+ *               email:
+ *                 type: string
+ *                 description: 新的电子邮箱地址
+ *                 example: johndoe@example.com
+ *     responses:
+ *       200:
+ *         description: 邮箱更新成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Email updated
+ *                 username:
+ *                   type: string
+ *                   example: johndoe
+ *       401:
+ *         description: 未授权
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       403:
+ *         description: 权限拒绝
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Permission denied
+ *       500:
+ *         description: 服务器错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Error update user email
+ *                 error:
+ *                   type: string
+ *                   example: Some error message
+ */
+router.put('/admin/user/update-email', passport.authenticate('jwt', {session: false}), updateEmailByAdmin);
+
+
+/**
+ * @swagger
+ * /admin/user/update-roles:
+ *   put:
+ *     summary: 管理员更新用户角色
+ *     description: 允许具有管理员权限的用户更新指定用户的角色。
+ *     tags:
+ *       - admin
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               _id:
+ *                 type: string
+ *                 description: 要更新角色的用户 ID
+ *                 example: 60c72b2f9b1d8e1f8c8b4567
+ *               roles:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: 新的用户角色数组
+ *                 example: ["admin", "user"]
+ *     responses:
+ *       200:
+ *         description: 用户角色更新成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Roles updated
+ *                 username:
+ *                   type: string
+ *                   example: johndoe
+ *       401:
+ *         description: 未授权
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       403:
+ *         description: 权限拒绝
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Permission denied
+ *       500:
+ *         description: 服务器错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Error updating user roles
+ *                 error:
+ *                   type: string
+ *                   example: Some error message
+ */
+router.put('/admin/user/update-roles', passport.authenticate('jwt', {session: false}), updateRolesByAdmin);
+
+
+/**
+ * @swagger
+ * /admin/user/update-password:
+ *   put:
+ *     summary: 管理员更新用户密码
+ *     description: 允许具有管理员权限的用户更新指定用户的密码。
+ *     tags:
+ *       - admin
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               _id:
+ *                 type: string
+ *                 description: 要更新密码的用户 ID
+ *                 example: 60c72b2f9b1d8e1f8c8b4567
+ *               newPassword:
+ *                 type: string
+ *                 description: 用户的新密码
+ *                 example: NewSecurePassword123!
+ *     responses:
+ *       200:
+ *         description: 用户密码更新成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password updated
+ *                 username:
+ *                   type: string
+ *                   example: johndoe
+ *       401:
+ *         description: 未授权
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       403:
+ *         description: 权限拒绝
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Permission denied
+ *       500:
+ *         description: 服务器错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Error updating user password
+ *                 error:
+ *                   type: string
+ *                   example: Some error message
+ */
+router.put('/admin/user/update-password', passport.authenticate('jwt', {session: false}), updatePasswordByAdmin);
+
+/**
+ * @swagger
+ * /admin/user/{userId}:
+ *   delete:
+ *     summary: Delete a user account by admin
+ *     tags: [admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user ID of the user to delete
+ *     responses:
+ *       204:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden, only admins can perform this action
+ */
+router.delete('/admin/user/:userId', passport.authenticate('jwt', {session: false}), deleteUser);
 export default router;

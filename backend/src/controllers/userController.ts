@@ -1,6 +1,7 @@
 import {Request, Response} from 'express';
 import * as userService from '../services/userService';
 import transporter from "../config/mailConfig";
+import {updateEmailById} from "../services/userService";
 
 interface CustomError extends Error {
     message: string;
@@ -168,7 +169,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 export const getCurrentUser = async (req: Request, res: Response) => {
     try {
         // 从请求中的用户信息获取用户 ID
-        const user = req.user;
+        const user = req.user as IUser;
 
         if (!user) {
             return res.status(401).json({message: 'Unauthorized'});
@@ -183,3 +184,53 @@ export const getCurrentUser = async (req: Request, res: Response) => {
         return res.status(500).json({message: 'Internal server error'});
     }
 };
+
+export const getAllUser = async (req: Request, res: Response) => {
+    const user = req.user as IUser;
+    if (!user) return res.status(401).json({message: 'Unauthorized'});
+    if (!user.roles.includes("admin")) return res.status(403).json({message: 'Permission denied'});
+    const users = await userService.getAllUser()
+    res.status(200).json(users);
+}
+
+export const updateEmailByAdmin = async (req: Request, res: Response): Promise<any> => {
+    const user = req.user as IUser;
+    const {_id, email} = req.body;
+    if (!user) return res.status(401).json({message: 'Unauthorized'});
+    if (!user.roles.includes("admin")) return res.status(403).json({message: 'Permission denied'});
+    try {
+        await userService.updateEmailById(_id, email)
+        res.status(200).json({message: 'Email updated', username: user.username});
+    } catch (e) {
+        const error = e as CustomError;
+        res.status(500).json({message: 'Error update user email', error: error.message});
+    }
+}
+
+export const updateRolesByAdmin = async (req: Request, res: Response): Promise<any> => {
+    const user = req.user as IUser;
+    const {_id, roles} = req.body;
+    if (!user) return res.status(401).json({message: 'Unauthorized'});
+    if (!user.roles.includes("admin")) return res.status(403).json({message: 'Permission denied'});
+    try {
+        await userService.updateRolesById(_id, roles)
+        res.status(200).json({message: 'Email updated', username: user.username});
+    } catch (e) {
+        const error = e as CustomError;
+        res.status(500).json({message: 'Error update user email', error: error.message});
+    }
+}
+
+export const updatePasswordByAdmin = async (req: Request, res: Response): Promise<any> => {
+    const user = req.user as IUser;
+    const {_id, newPassword} = req.body;
+    if (!user) return res.status(401).json({message: 'Unauthorized'});
+    if (!user.roles.includes("admin")) return res.status(403).json({message: 'Permission denied'});
+    try {
+        await userService.changePasswordById(_id, newPassword)
+        res.status(200).json({message: 'Email updated', username: user.username});
+    } catch (e) {
+        const error = e as CustomError;
+        res.status(500).json({message: 'Error update user email', error: error.message});
+    }
+}

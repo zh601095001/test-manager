@@ -52,7 +52,6 @@ const Profile: React.FC = () => {
             if (info.file.status === 'done') {
                 form.setFieldValue("avatar", info.file.response.url)
                 setAvatarUrl(info.file.response.url); // Assumes server responds with the URL
-                message.success(`${info.file.name} file uploaded successfully`);
                 form.setFieldsValue({avatar: info.file.response.url});
             } else if (info.file.status === 'error') {
                 message.error(`${info.file.name} file upload failed.`);

@@ -49,6 +49,9 @@ function UserAvatarDropdown({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen
 
     const handleMenuClick = ({key}: { key: string }) => {
         switch (key) {
+            case "1":
+                router.push("/users")
+                break
             case "2":
                 router.push("/profile")
                 break;

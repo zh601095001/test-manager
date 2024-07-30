@@ -1,26 +1,26 @@
 "use client"
 import React, {useState} from 'react';
-import {useSelector} from "react-redux";
 import {Table} from "antd"
 import EditableRow from "./EditableRow";
 import EditableCell from "./EditableRow/EditableCell";
-import {selectCurrentRoles} from "@/features/auth/authSlice";
 import {PlusSquareOutlined} from "@ant-design/icons";
 import AddRunnerModel from "@/app/(auth)/runnerpool/RunnerTable/AddRunnerModel";
+import {useUserQuery} from "@/services/profile";
 
 
 type EditableTableProps = Parameters<typeof Table>[0];
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
 
 const DeviceTable: React.FC = () => {
-    const roles = useSelector(selectCurrentRoles)
+    const {data: user, isLoading} = useUserQuery()
+
     const [isAddRunnerModelOpen, setIsAddRunnerModelOpen] = useState<boolean>(false)
     const source: any = []
     const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
         {
             title: '名称',
             dataIndex: 'runnerName',
-            editable: !!(roles && roles.includes("admin")),
+            editable: !!(user?.roles && user?.roles.includes("admin")),
         },
         {
             title: 'ip地址',
@@ -29,7 +29,7 @@ const DeviceTable: React.FC = () => {
         {
             title: '端口号',
             dataIndex: 'runnerPort',
-            editable: !!(roles && roles.includes("admin"))
+            editable: !!(user?.roles && user?.roles.includes("admin"))
         },
         {
             title: '状态',
@@ -42,7 +42,7 @@ const DeviceTable: React.FC = () => {
         {
             title: '备注',
             dataIndex: 'comment',
-            editable: !!(roles && roles.includes("admin"))
+            editable: !!(user?.roles && user?.roles.includes("admin"))
         },
         {
             title: (
@@ -99,6 +99,7 @@ const DeviceTable: React.FC = () => {
         };
     });
 
+    if (isLoading) return <div>Loading</div>
 
     return (
         <div>

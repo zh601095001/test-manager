@@ -72,7 +72,7 @@ const appConfig: AppConfig = {
             },
             servers: [
                 {
-                    "url": "/",
+                    "url": "/api",
                     "description": "Base path for all endpoints"
                 }
             ],

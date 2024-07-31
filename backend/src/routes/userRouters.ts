@@ -12,7 +12,14 @@ import {
     sendPasswordResetEmail,
     resetPassword,
     getCurrentUser,
-    getAllUser, updateEmailByAdmin, updateRolesByAdmin, updatePasswordByAdmin
+    getAllUser,
+    updateEmailByAdmin,
+    updateRolesByAdmin,
+    updatePasswordByAdmin,
+    getAllAvatars,
+    updateUserDeviceFilters,
+    getUserDeviceFilters,
+    setUserNickName
 } from '../controllers/userController';
 import passport from "passport";
 
@@ -738,4 +745,211 @@ router.put('/admin/user/update-password', passport.authenticate('jwt', {session:
  *         description: Forbidden, only admins can perform this action
  */
 router.delete('/admin/user/:userId', passport.authenticate('jwt', {session: false}), deleteUser);
+
+
+/**
+ * @swagger
+ * /avatars:
+ *   get:
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Retrieve all user avatars
+ *     description: Retrieve a list of all user avatars with usernames. Access is restricted for users with only the "guest" role.
+ *     tags:
+ *       - 用户
+ *     responses:
+ *       200:
+ *         description: A list of avatars with usernames
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   username:
+ *                     type: string
+ *                     description: The user's username
+ *                     example: johndoe
+ *                   avatar:
+ *                     type: string
+ *                     description: URL or path to the user's avatar
+ *                     example: /avatars/johndoe.jpg
+ *       401:
+ *         description: Unauthorized access, user not logged in
+ *       403:
+ *         description: Permission denied, user only has the "guest" role
+ *       500:
+ *         description: Error retrieving avatars
+ */
+router.get('/avatars', passport.authenticate('jwt', {session: false}), getAllAvatars);
+
+
+/**
+ * @swagger
+ * /user/device-filters:
+ *   put:
+ *     summary: Update the device filters for the current user
+ *     description: This endpoint allows the authenticated user to update their device filters.
+ *     tags:
+ *       - 用户
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               deviceFilters:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["filter1", "filter2"]
+ *     responses:
+ *       200:
+ *         description: Device filters updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: DeviceFilters update successful!
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: DeviceFilters update failed!
+ *                 error:
+ *                   type: string
+ *                   example: Detailed error message
+ */
+router.put('/user/device-filters', passport.authenticate('jwt', {session: false}), updateUserDeviceFilters);
+
+
+/**
+ * @swagger
+ * /user/device-filters:
+ *   get:
+ *     tags:
+ *       - 用户
+ *     security:
+ *       - bearerAuth: []
+ *     summary: 获取用户的设备过滤器
+ *     description: 获取当前登录用户的设备过滤器设置。
+ *     responses:
+ *       200:
+ *         description: 成功获取设备过滤器
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 deviceFilters:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     example: []
+ *       401:
+ *         description: 未授权
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Unauthorized'
+ *       500:
+ *         description: 获取设备过滤器失败
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'DeviceFilters get failed!'
+ *                 error:
+ *                   type: string
+ *                   example: 'Detailed error message'
+ */
+router.get('/user/device-filters', passport.authenticate('jwt', {session: false}), getUserDeviceFilters);
+
+
+/**
+ * @swagger
+ * /user/nickname:
+ *   post:
+ *     summary: Update user nickname
+ *     description: Allows a user to update their nickname.
+ *     tags:
+ *       - 用户
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nickName:
+ *                 type: string
+ *                 description: The new nickname for the user
+ *                 example: "new_nickname"
+ *     responses:
+ *       200:
+ *         description: Nickname update successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "nickname update successful!"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       500:
+ *         description: Nickname update failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "nickname update failed!"
+ *                 error:
+ *                   type: string
+ *                   example: "Error message"
+ */
+router.post('/user/nickname',  passport.authenticate('jwt', {session: false}), setUserNickName);
 export default router;

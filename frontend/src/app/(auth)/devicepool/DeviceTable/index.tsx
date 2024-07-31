@@ -2,7 +2,7 @@
 import React, {useEffect, useState} from 'react';
 import {useSelector} from "react-redux";
 import {selectDevices} from "@/features/websocket/websocketSlice";
-import {Button, Form, Input, message, Modal, Popconfirm, Table} from "antd"
+import {Avatar, Button, Form, Input, message, Modal, Popconfirm, Table} from "antd"
 import EditableRow from "./EditableRow";
 import EditableCell from "./EditableRow/EditableCell";
 import {
@@ -12,11 +12,11 @@ import {
     useRemoveDeviceByIpMutation,
     useUpdateDeviceMutation
 } from "@/services/devicePool";
-import {SettingOutlined} from "@ant-design/icons";
+import {SettingOutlined, UserOutlined} from "@ant-design/icons";
 import DeviceSettingModal from "./DeviceSettingModal";
 import DevicesSettingModal from "./DevicesSettingModal";
 import {useCreateConcurrentTaskMutation} from "@/services/task";
-import {useUserQuery} from "@/services/profile";
+import {useGetAvatarsQuery, useGetDeviceFiltersQuery, useSetDeviceFiltersMutation, useUserQuery} from "@/services/api";
 
 // 定义设备对象的接口
 interface Device {
@@ -51,13 +51,16 @@ const DeviceTable: React.FC = () => {
     const [isDevicesSettingModalOpen, setDevicesSettingModalOpen] = useState(false)
     const [currentRecord, setCurrentRecord] = useState<Device | null>(null)
     const [getSshConfig] = useGetSshConfigMutation()
+    const {data: avatars, isLoading: isAvatarsLoading} = useGetAvatarsQuery()
     const [searchText, setSearchText] = useState("");
+    const {data: deviceFilters, isLoading: isFilterLoading} = useGetDeviceFiltersQuery()
+    const [setDeviceFilters] = useSetDeviceFiltersMutation()
     useEffect(() => {
         if (currentRecord) {
             setCurrentRecord(allDevices[allDevices.findIndex(device => device.deviceIp === currentRecord.deviceIp)])
         }
     }, [allDevices]);
-    if (isLoading) return <div>Loading</div>
+    if (isLoading || isFilterLoading) return <div>Loading</div>
 
     const handleSearch = (text: string) => {
         setSearchText(text);
@@ -68,7 +71,6 @@ const DeviceTable: React.FC = () => {
             value && value.toString().toLowerCase().includes(searchText.toLowerCase())
         )
     );
-
     const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
         {
             title: '设备名称',
@@ -115,12 +117,34 @@ const DeviceTable: React.FC = () => {
         {
             title: '使用者',
             dataIndex: 'user',
-            editable: !!(user?.roles && user?.roles.includes("admin"))
+            editable: !!(user?.roles && user?.roles.includes("admin")),
+            render: (value, record) => {
+                let displayName = value
+                if (!value) return ""
+                const currentAvatar = avatars ? avatars.find(avatar => avatar.username === value) : null;
+                console.log(currentAvatar, "currentAvatar")
+                if (currentAvatar && currentAvatar.nickName) {
+                    displayName = currentAvatar.nickName
+                }
+                return (
+                    <div style={{display: "flex", alignItems: "center"}}>
+                        <Avatar
+                            icon={currentAvatar || isAvatarsLoading ? <UserOutlined/> : null}
+                            src={currentAvatar ? currentAvatar.avatarUrl : null}
+                        />
+                        <span style={{marginLeft: 10}}>{displayName}</span>
+                    </div>
+                );
+            }
         },
         {
             title: '备注',
             dataIndex: 'comment',
-            editable: !!(user?.roles && user?.roles.includes("admin"))
+            editable: !!(user?.roles && user?.roles.includes("admin")),
+            render: (value, record) => {
+                if (!value) return "-"
+                return value
+            }
         },
         {
             title: "操作",
@@ -143,7 +167,7 @@ const DeviceTable: React.FC = () => {
                     value: "自动化测试"
                 }
             ],
-            defaultFilteredValue: ["unlocked"],
+            defaultFilteredValue: deviceFilters ? [...deviceFilters] : [],
             onFilter: (value, record) => {
                 if (value === "自动化测试" && record.status === "locked") {
                     return record.comment === value
@@ -299,7 +323,10 @@ const DeviceTable: React.FC = () => {
             setIsModalOpen(false)
         })
     }
-
+    const handleTableChange = (_: any, filters: any) => {
+        const selectedFilters = filters.operation || []
+        setDeviceFilters({deviceFilters: selectedFilters})
+    }
     return (
         <div>
             <Input.Search
@@ -307,6 +334,7 @@ const DeviceTable: React.FC = () => {
                 onChange={(e) => handleSearch(e.target.value)}
             />
             <Table
+                onChange={handleTableChange}
                 components={components}
                 rowClassName={() => 'editable-row'}
                 dataSource={filteredDevices}

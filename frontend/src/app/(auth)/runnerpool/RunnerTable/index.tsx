@@ -5,7 +5,7 @@ import EditableRow from "./EditableRow";
 import EditableCell from "./EditableRow/EditableCell";
 import {PlusSquareOutlined} from "@ant-design/icons";
 import AddRunnerModel from "@/app/(auth)/runnerpool/RunnerTable/AddRunnerModel";
-import {useUserQuery} from "@/services/profile";
+import {useUserQuery} from "@/services/api";
 
 
 type EditableTableProps = Parameters<typeof Table>[0];

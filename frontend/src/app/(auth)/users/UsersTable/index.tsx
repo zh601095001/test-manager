@@ -9,7 +9,7 @@ import {
     useUpdateEmailByAdminMutation,
     useUpdatePasswordByAdminMutation,
     useUpdateRolesByAdminMutation
-} from "@/services/users";
+} from "@/services/api";
 
 
 interface User {

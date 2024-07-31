@@ -167,3 +167,45 @@ export const changePasswordById = async (_id: string, newPassword: string) => {
 
     return {message: '密码已成功更新'};
 }
+
+export const getAllAvatars = async () => {
+    return User.find().select("username avatar nickName").lean();
+}
+
+export const updateUserDeviceFilters = async (user: IUser, newFilters: string[]) => {
+    try {
+        if (!user.settings) {
+            user.settings = {} as any;
+        }
+        user.settings.deviceFilters = newFilters;
+        await user.save();
+        return user;
+    } catch (error) {
+        console.error('Error updating device filters:', error);
+        throw error;
+    }
+};
+
+export const getUserDeviceFilters = async (user: IUser) => {
+    try {
+        // 检查 user.settings 和 user.settings.deviceFilters 是否存在
+        if (user && user.settings && Array.isArray(user.settings.deviceFilters)) {
+            return user.settings.deviceFilters;
+        } else {
+            return [];
+        }
+    } catch (error) {
+        console.error('Error getting device filters:', error);
+        throw error;
+    }
+};
+
+export const setUserNickName = async (user: IUser, newNickName: string) => {
+    try {
+        user.nickName = newNickName
+        await user.save()
+    } catch (e) {
+        throw new Error("nickname update failed!")
+    }
+
+}

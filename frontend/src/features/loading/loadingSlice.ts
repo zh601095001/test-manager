@@ -1,27 +1,24 @@
-// features/loadingSlice.ts
-import { createSlice } from '@reduxjs/toolkit';
+// loadingSlice.ts
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface LoadingState {
-    isVisible: boolean;
+    isLoading: boolean;
 }
 
 const initialState: LoadingState = {
-    isVisible: false,
+    isLoading: false,
 };
 
-export const loadingSlice = createSlice({
+const loadingSlice = createSlice({
     name: 'loading',
     initialState,
     reducers: {
-        showLoading: (state) => {
-            state.isVisible = true;
-        },
-        hideLoading: (state) => {
-            state.isVisible = false;
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.isLoading = action.payload;
         },
     },
 });
 
-export const { showLoading, hideLoading } = loadingSlice.actions;
-export const isLoadingVisibleSelector = (state: any) => state.loading.isVisible
+export const { setLoading } = loadingSlice.actions;
+
 export default loadingSlice.reducer;

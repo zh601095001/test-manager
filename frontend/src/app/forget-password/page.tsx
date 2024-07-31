@@ -3,7 +3,7 @@ import React from 'react';
 import {Card, FormProps, message} from 'antd';
 import {Button, Form, Input} from 'antd';
 import Link from "next/link";
-import {useSendForgetPasswordEmailMutation} from "@/services/users";
+import {useSendForgetPasswordEmailMutation} from "@/services/api";
 
 type FieldType = {
     email?: string;

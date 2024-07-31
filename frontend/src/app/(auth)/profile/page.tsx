@@ -5,17 +5,18 @@ import {UploadOutlined, UserOutlined} from "@ant-design/icons";
 import {UploadProps} from 'antd/es/upload';
 import styles from "./index.module.scss"
 import {
-    useChangePasswordMutation,
+    useChangePasswordMutation, useSetNickNameMutation,
     useUpdateAvatarMutation,
     useUpdateEmailMutation,
     useUserQuery
-} from "@/services/profile";
+} from "@/services/api";
 
 interface FormValues {
     email: string;
     oldPassword?: string;
     newPassword?: string;
     avatar?: string;
+    newNickName?: string
 }
 
 const Profile: React.FC = () => {
@@ -24,10 +25,12 @@ const Profile: React.FC = () => {
     const [updateAvatar] = useUpdateAvatarMutation()
     const [updateEmail] = useUpdateEmailMutation()
     const [changePassword] = useChangePasswordMutation()
+    const [setNickName] = useSetNickNameMutation()
     const [avatarUrl, setAvatarUrl] = useState<string>("");
 
     useEffect(() => {
         form.setFieldValue("currentEmail", user?.email);
+        form.setFieldValue("nickName", user?.nickName);
     }, [user]);
     if (!user || isLoading) return <p>Loading...</p>;
     // @ts-ignore
@@ -60,7 +63,7 @@ const Profile: React.FC = () => {
     };
 
     const onFinish = async (values: FormValues) => {
-        const {avatar, email, oldPassword, newPassword} = values
+        const {avatar, email, oldPassword, newPassword, newNickName} = values
         if (avatar) {
             const {message: msg} = await updateAvatar({avatar}).unwrap()
             message.success(msg)
@@ -75,6 +78,11 @@ const Profile: React.FC = () => {
             const {message: msg} = await changePassword({oldPassword, newPassword}).unwrap()
             message.success(msg)
             form.resetFields(["oldPassword", "newPassword"])
+        }
+        if (newNickName) {
+            const {message: msg} = await setNickName({nickName: newNickName}).unwrap()
+            message.success(msg)
+            form.resetFields(["newNickName"])
         }
     };
     const currentAvatar = (() => {
@@ -99,6 +107,15 @@ const Profile: React.FC = () => {
                             </Upload>
                         </Form.Item>
                     </div>
+                </Form.Item>
+                <Form.Item label="昵称">
+                    <hr style={{marginTop: 0, marginBottom: 20, color: "#dcdcde"}}/>
+                    <Form.Item style={{marginBottom: 20}} name="nickName" label="当前昵称">
+                        <Input disabled/>
+                    </Form.Item>
+                    <Form.Item style={{marginBottom: 0}} name="newNickName" label="新昵称">
+                        <Input/>
+                    </Form.Item>
                 </Form.Item>
                 <Form.Item label="当前权限">
                     <hr style={{marginTop: 0, marginBottom: 20, color: "#dcdcde"}}/>

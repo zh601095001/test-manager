@@ -3,7 +3,7 @@ import React from 'react';
 import {Card, FormProps, message} from 'antd';
 import {Button, Form, Input} from 'antd';
 import Link from "next/link";
-import {RegisterRequest, useRegisterMutation} from "@/services/auth";
+import {RegisterRequest, useRegisterMutation} from "@/services/api";
 import {setCredentials} from "@/features/auth/authSlice";
 import {useDispatch} from "react-redux";
 import {useRouter} from "next/navigation";

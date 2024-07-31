@@ -2,6 +2,7 @@ import {fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import {RootState} from "@/store";
 import {clearCredentials, setCredentials} from "@/features/auth/authSlice";
 import {message} from "antd";
+import {setLoading} from "@/features/loading/loadingSlice";
 
 const baseQuery = fetchBaseQuery({
     baseUrl: '/api/',
@@ -16,7 +17,9 @@ const baseQuery = fetchBaseQuery({
 
 // @ts-ignore
 export const baseQueryWithReauth = async (args, api, extraOptions) => {
+    api.dispatch(setLoading(true)); // 请求开始，显示加载
     let result = await baseQuery(args, api, extraOptions);
+    api.dispatch(setLoading(false)); // 请求开始，显示加载
     if (args.url === "login") {
         return result
     }

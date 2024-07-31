@@ -5,6 +5,7 @@ import React from "react";
 import {store} from "@/store";
 import {Provider} from "react-redux";
 import {WebSocketProvider} from "@/components/WebsocketProvider";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 
 export default function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
@@ -12,6 +13,7 @@ export default function RootLayout({children,}: Readonly<{ children: React.React
         <html lang="en">
         <body>
         <Provider store={store}>
+            <LoadingOverlay/>
             <WebSocketProvider>
                 {children}
             </WebSocketProvider>

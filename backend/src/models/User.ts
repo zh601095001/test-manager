@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 const UserSchema = new mongoose.Schema<IUser>({
     // _id:{type:String,unique:true,required: true},
     username: {type: String, unique: true, required: true},
+    nickName: {type: String},
     password: {type: String, required: true},
     roles: [{type: String}],
     refreshToken: {type: String, default: null}, // 弃用
@@ -13,10 +14,10 @@ const UserSchema = new mongoose.Schema<IUser>({
     email: {type: String, default: null},
     avatar: {type: String},
     settings: {
-        deviceFilters: [{type: Array}],
+        deviceFilters: [String],
     },
-    resetPasswordToken: { type: String, default: null }, // 新增的字段
-    resetPasswordExpires: { type: Date, default: null }   // 新增的字段
+    resetPasswordToken: {type: String, default: null}, // 新增的字段
+    resetPasswordExpires: {type: Date, default: null}   // 新增的字段
 });
 
 // 创建 mongoose 模型

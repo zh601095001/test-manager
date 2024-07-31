@@ -5,12 +5,10 @@ import websocketReducer from "@/features/websocket/websocketSlice"
 import loadingReducer from '@/features/loading/loadingSlice';
 import {devicePoolApi} from "@/services/devicePool";
 import authReducer from '@/features/auth/authSlice'
-import {authApi} from "@/services/auth"
 import {deviceSettingsApi} from "@/services/deviceSettings";
 import {taskApi} from "@/services/task";
 import {filesApi} from "@/services/files";
-import {profileApi} from "@/services/profile";
-import {usersApi} from "@/services/users";
+import {api} from "@/services/api";
 
 export const store = configureStore({
     reducer: {
@@ -18,16 +16,14 @@ export const store = configureStore({
         websocket: websocketReducer,
         loading: loadingReducer,
         [devicePoolApi.reducerPath]: devicePoolApi.reducer,
-        [authApi.reducerPath]: authApi.reducer,
         [deviceSettingsApi.reducerPath]: deviceSettingsApi.reducer,
         [taskApi.reducerPath]: taskApi.reducer,
         [filesApi.reducerPath]: filesApi.reducer,
-        [profileApi.reducerPath]: profileApi.reducer,
-        [usersApi.reducerPath]: usersApi.reducer,
+        [api.reducerPath]: api.reducer,
         auth: authReducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(devicePoolApi.middleware, authApi.middleware, taskApi.middleware, deviceSettingsApi.middleware, filesApi.middleware, profileApi.middleware, usersApi.middleware),
+        getDefaultMiddleware().concat(devicePoolApi.middleware,  taskApi.middleware, deviceSettingsApi.middleware, filesApi.middleware, api.middleware),
 
 });
 

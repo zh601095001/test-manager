@@ -2,7 +2,7 @@
 import React from 'react';
 import {Card, FormProps, message} from 'antd';
 import {Button, Form, Input} from 'antd';
-import {useResetPasswordMutation, useSendForgetPasswordEmailMutation} from "@/services/users";
+import {useResetPasswordMutation, useSendForgetPasswordEmailMutation} from "@/services/api";
 import {useRouter} from "next/navigation";
 
 type FieldType = {

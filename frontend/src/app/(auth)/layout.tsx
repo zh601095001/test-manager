@@ -5,7 +5,7 @@ import {setCredentials} from "@/features/auth/authSlice";
 import {useRouter} from 'next/navigation'; // 确保正确引用next/router
 import {message} from "antd";
 
-import {useRefreshTokenMutation} from "@/services/auth";
+import {useRefreshTokenMutation} from "@/services/api";
 import AddDeviceModal from "@/app/(auth)/components/AddDeviceModal";
 import Header from "@/app/(auth)/components/Header";
 

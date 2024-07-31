@@ -92,6 +92,7 @@ declare global {
 
     interface IUser extends Document {
         username: string;
+        nickName:string
         password: string;
         roles: string[];
         refreshToken: string | null;
@@ -99,7 +100,7 @@ declare global {
         email: string | null;
         avatar: string;
         settings: {
-            deviceFilter: string[];
+            deviceFilters: string[];
         }
         resetPasswordToken?: string | null; // 新增的字段，用于存储密码重置令牌
         resetPasswordExpires?: Date | null; // 新增的字段，用于存储令牌过期时间

@@ -8,9 +8,9 @@ interface CustomError extends Error {
 }
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-    const {username, password,email} = req.body;
+    const {username, password, email} = req.body;
     try {
-        const {newUser, accessToken, roles} = await userService.registerUser(username, password,email);
+        const {newUser, accessToken, roles} = await userService.registerUser(username, password, email);
         res.status(201).json({message: 'User registered', accessToken, roles, username: newUser.username});
     } catch (e) {
         const error = e as CustomError;
@@ -232,5 +232,62 @@ export const updatePasswordByAdmin = async (req: Request, res: Response): Promis
     } catch (e) {
         const error = e as CustomError;
         res.status(500).json({message: 'Error update user email', error: error.message});
+    }
+}
+
+export const getAllAvatars = async (req: Request, res: Response): Promise<any> => {
+    const user = req.user as IUser;
+    if (!user) return res.status(401).json({message: 'Unauthorized'});
+
+    // Check if the user has only the "guest" role
+    if (user.roles.length === 1 && user.roles.includes("guest")) {
+        return res.status(403).json({message: 'Permission denied'});
+    }
+
+    try {
+        const allAvatars = await userService.getAllAvatars();
+        res.status(200).json({avatars: allAvatars});
+    } catch (e) {
+        const error = e as CustomError;
+        res.status(500).json({message: 'Error getting avatars', error: error.message});
+    }
+}
+
+export const updateUserDeviceFilters = async (req: Request, res: Response): Promise<any> => {
+    const user = req.user as IUser;
+    const {deviceFilters} = req.body;
+    try {
+        if (!user) return res.status(401).json({message: 'Unauthorized'});
+        await userService.updateUserDeviceFilters(user, deviceFilters)
+        res.status(200).json({message: "DeviceFilters update successful!"});
+    } catch (e) {
+        const error = e as CustomError;
+        res.status(500).json({message: 'DeviceFilters update failed!', error: error.message});
+    }
+}
+
+export const getUserDeviceFilters = async (req: Request, res: Response): Promise<any> => {
+    const user = req.user as IUser;
+    if (!user) return res.status(401).json({message: 'Unauthorized'});
+    try {
+        const filters = await userService.getUserDeviceFilters(user)
+        res.status(200).json({deviceFilters: filters});
+    } catch (e) {
+        const error = e as CustomError;
+        res.status(500).json({message: 'DeviceFilters get failed!', error: error.message});
+    }
+}
+
+export const setUserNickName = async (req: Request, res: Response): Promise<any> => {
+    const user = req.user as IUser;
+    const {nickName} = req.body;
+
+    if (!user) return res.status(401).json({message: 'Unauthorized'});
+    try {
+        await userService.setUserNickName(user, nickName)
+        res.status(200).json({message: "nickname update successful!"});
+    } catch (e) {
+        const error = e as CustomError;
+        res.status(500).json({message: 'nickname update failed!', error: error.message});
     }
 }

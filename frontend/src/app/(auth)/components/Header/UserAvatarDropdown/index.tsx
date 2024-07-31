@@ -2,11 +2,9 @@ import React from 'react';
 import {Avatar, Dropdown, type MenuProps, message} from "antd";
 import {DatabaseOutlined, LogoutOutlined, SettingOutlined, TeamOutlined, UserOutlined} from "@ant-design/icons";
 import {useRouter} from "next/navigation";
-import {useLogoutMutation} from "@/services/auth";
+import {useLogoutMutation} from "@/services/api";
 import {useWebSocket} from "@/components/WebsocketProvider";
-import {useSelector} from "react-redux";
-import {selectCurrentRoles, selectCurrentUser} from "@/features/auth/authSlice";
-import {useUserQuery} from "@/services/profile";
+import {useUserQuery} from "@/services/api";
 
 function UserAvatarDropdown({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen: (open: boolean) => void }) {
     const {data: user, isLoading} = useUserQuery()

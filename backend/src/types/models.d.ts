@@ -40,6 +40,7 @@ declare global {
     interface IIntegration extends Document {
         settings: string;
         testid: string;
+        integrationResult: any[]
     }
 
     interface IDeviceSettings extends Document {
@@ -92,7 +93,7 @@ declare global {
 
     interface IUser extends Document {
         username: string;
-        nickName:string
+        nickName: string
         password: string;
         roles: string[];
         refreshToken: string | null;

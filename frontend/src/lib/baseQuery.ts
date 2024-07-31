@@ -16,10 +16,14 @@ const baseQuery = fetchBaseQuery({
 });
 
 // @ts-ignore
-export const baseQueryWithReauth = async (args, api, extraOptions) => {
-    api.dispatch(setLoading(true)); // 请求开始，显示加载
+export const baseQueryWithReauth = (showLoading:boolean) => async (args, api, extraOptions) => {
+    if (showLoading){
+        api.dispatch(setLoading(true)); // 请求开始，显示加载
+    }
     let result = await baseQuery(args, api, extraOptions);
-    api.dispatch(setLoading(false)); // 请求开始，显示加载
+    if (showLoading){
+        api.dispatch(setLoading(false)); // 请求开始，显示加载
+    }
     if (args.url === "login") {
         return result
     }

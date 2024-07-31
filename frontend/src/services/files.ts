@@ -12,7 +12,7 @@ interface FileUrlResponse {
 
 export const filesApi = createApi({
     reducerPath: 'filesApi',
-    baseQuery: baseQueryWithReauth,
+    baseQuery: baseQueryWithReauth(true),
     tagTypes: ['File'],
     endpoints: (builder) => ({
         getFileUrl: builder.mutation<FileUrlResponse, GetFileUrlArgs>({

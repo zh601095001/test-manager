@@ -1,5 +1,6 @@
 import {createApi} from '@reduxjs/toolkit/query/react'
 import {baseQueryWithReauth} from "@/lib/baseQuery";
+import {setLoading} from "@/features/loading/loadingSlice";
 
 // 任务创建请求的接口
 interface CreateTaskRequest {
@@ -54,21 +55,47 @@ interface GetTaskByIdRequest {
 
 export const taskApi = createApi({
     reducerPath: 'taskApi',
-    baseQuery: baseQueryWithReauth,
+    baseQuery: baseQueryWithReauth(false),
     endpoints: (builder) => ({
         createConcurrentTask: builder.mutation<CreateTaskResponse, CreateTaskRequest>({
             query: (taskData) => ({
                 url: 'concurrent/task',
                 method: 'POST',
                 body: taskData
-            })
+            }),
+            onCacheEntryAdded: async (arg, { dispatch, cacheDataLoaded, cacheEntryRemoved }) => {
+                // Dispatch loading start
+                dispatch(setLoading(true));
+
+                try {
+                    await cacheDataLoaded; // Wait for the data to be cached
+                } finally {
+                    // Dispatch loading end
+                    dispatch(setLoading(false));
+                }
+
+                await cacheEntryRemoved; // Cleanup when the cache entry is removed
+            },
         }),
         getTasks: builder.mutation<CreateTaskResponse[], GetTasksRequest>({
             query: (params) => ({
                 url: 'concurrent/tasks/s',
                 method: 'GET',
                 params: params // 这将包括所有非空的查询参数，如 title, taskType, status, limit, offset
-            })
+            }),
+            onCacheEntryAdded: async (arg, { dispatch, cacheDataLoaded, cacheEntryRemoved }) => {
+                // Dispatch loading start
+                dispatch(setLoading(true));
+
+                try {
+                    await cacheDataLoaded; // Wait for the data to be cached
+                } finally {
+                    // Dispatch loading end
+                    dispatch(setLoading(false));
+                }
+
+                await cacheEntryRemoved; // Cleanup when the cache entry is removed
+            },
         }),
         getTaskById: builder.mutation<CreateTaskResponse, GetTaskByIdRequest>({
             query: ({_id}) => ({

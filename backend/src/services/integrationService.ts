@@ -8,24 +8,45 @@ const getIntegrationSettings = async (testid: string) => {
 
 // 更新设备设置
 const updateIntegrationSettings = async (testid: string, data: any) => {
-    const IntegrationSettings = await Integration.findOne({testid})
+    const IntegrationSettings = await Integration.findOne({ testid });
+    let newIntegrationResult = [];
+
+    if (data.integrationResult) {
+        if (Array.isArray(data.integrationResult)) {
+            newIntegrationResult = [...data.integrationResult];
+        } else if (typeof data.integrationResult === 'object') {
+            newIntegrationResult.push(data.integrationResult);
+        }
+    }
+
+    if (IntegrationSettings) {
+        if (Array.isArray(IntegrationSettings.integrationResult)) {
+            newIntegrationResult = [...IntegrationSettings.integrationResult, ...newIntegrationResult];
+        } else if (typeof IntegrationSettings.integrationResult === 'object') {
+            newIntegrationResult.unshift(IntegrationSettings.integrationResult);
+        }
+    }
+
     if (!IntegrationSettings) {
         const newIntegration = new Integration({
             testid,
             settings: {
                 ...data.settings
-            }
-        })
-        await newIntegration.save()
+            },
+            integrationResult: newIntegrationResult
+        });
+        await newIntegration.save();
     } else {
         IntegrationSettings.settings = {
             ...IntegrationSettings.settings as Object, ...data.settings
-        }
-        await IntegrationSettings.save()
+        };
+        IntegrationSettings.integrationResult = newIntegrationResult;
+        await IntegrationSettings.save();
     }
 
-    return Integration.findOne({testid})
+    return Integration.findOne({ testid });
 };
+
 
 
 export default {

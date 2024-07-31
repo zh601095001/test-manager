@@ -43,7 +43,7 @@ interface RefreshTokenResponse {
 
 export const api = createApi({
     reducerPath: 'usersApi',
-    baseQuery: baseQueryWithReauth,
+    baseQuery: baseQueryWithReauth(true),
     tagTypes: ['Users', "Avatar", "User", "Device-filters"],
     endpoints: (builder) => ({
         getUsers: builder.query<User[], void>({

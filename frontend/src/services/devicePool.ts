@@ -4,7 +4,7 @@ import {baseQueryWithReauth} from "@/lib/baseQuery";
 // Define a service using a base URL and expected endpoints
 export const devicePoolApi = createApi({
     reducerPath: 'devicePoolApi',
-    baseQuery: baseQueryWithReauth,
+    baseQuery: baseQueryWithReauth(true),
     endpoints: (builder) => ({
         lockByDeviceIp: builder.mutation({
             query: ({deviceIp, user}: { deviceIp: string, user: string }) => ({

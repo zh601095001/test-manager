@@ -51,15 +51,15 @@ router.get('/integration-settings/:testid', IntegrationController.getIntegration
  * /integration-settings/{testid}:
  *   put:
  *     tags: [集成测试]
+ *     summary: 更新集成设置
+ *     description: 更新并返回集成设置
  *     parameters:
  *       - in: path
  *         name: testid
  *         required: true
  *         schema:
  *           type: string
- *         description: testid
- *     summary: Update the integration settings
- *     description: Updates and returns the integration settings
+ *         description: 要更新的测试ID
  *     requestBody:
  *       required: true
  *       content:
@@ -71,11 +71,16 @@ router.get('/integration-settings/:testid', IntegrationController.getIntegration
  *               value: {
  *                 "settings": {
  *                   "url": "http://www.example.com"
- *                 }
+ *                 },
+ *                 "integrationResult": [
+ *                   {
+ *                     "a":"example"
+ *                   }
+ *                 ]
  *               }
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: 成功更新
  *         content:
  *           application/json:
  *             schema:
@@ -85,11 +90,17 @@ router.get('/integration-settings/:testid', IntegrationController.getIntegration
  *                 value: {
  *                   "settings": {
  *                     "url": "http://www.example.com"
- *                   }
+ *                   },
+ *                   "integrationResult": [
+ *                     {
+ *                       "a":"example"
+ *                     }
+ *                   ]
  *                 }
  *       400:
- *         description: Invalid request format
+ *         description: 请求格式无效
  */
 router.put('/integration-settings/:testid', IntegrationController.updateIntegrationSettings);
+
 
 export default router;

@@ -7,7 +7,7 @@ const router = express.Router();
  * @swagger
  * /email:
  *   post:
- *     summary: Send an email
+ *     summary: 发送UI自动化测试报告邮件
  *     description: Sends an email based on the test ID provided.
  *     tags: [Email]
  *     requestBody:

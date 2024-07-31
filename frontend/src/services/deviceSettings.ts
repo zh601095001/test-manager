@@ -17,7 +17,7 @@ interface FirmwarePayload {
 
 export const deviceSettingsApi = createApi({
     reducerPath: 'deviceSettingsApi',
-    baseQuery: baseQueryWithReauth,
+    baseQuery: baseQueryWithReauth(true),
     tagTypes: ['DeviceSettings'],
     endpoints: (builder) => ({
         getDeviceSettings: builder.query<DeviceSettings, void>({

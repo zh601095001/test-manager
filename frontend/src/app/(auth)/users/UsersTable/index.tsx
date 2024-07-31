@@ -1,6 +1,6 @@
 "use client"
 import React, {useState} from 'react';
-import {Button, Input, Table} from "antd";
+import {Button, Input, Popconfirm, Table} from "antd";
 import EditableRow from "./EditableRow";
 import EditableCell from "./EditableRow/EditableCell";
 import {
@@ -90,9 +90,16 @@ const UsersTable: React.FC = () => {
         {
             title: '操作',
             render: (_, record, index) => (
-                <Button type="primary" danger onClick={() => {
-                    deleteUserByAdmin({_id: record._id})
-                }}>删除用户</Button>
+                <Popconfirm
+                    title="确定要删除该用户?"
+                    okText="确认"
+                    cancelText="取消"
+                    onConfirm={() => {
+                        deleteUserByAdmin({_id: record._id})
+                    }}
+                >
+                    <Button type="primary" danger>删除用户</Button>
+                </Popconfirm>
             ),
         },
     ];

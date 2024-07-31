@@ -41,4 +41,41 @@ const router = express.Router();
  */
 router.post('/email', emailController.sendEmail);
 
+
+/**
+ * @swagger
+ * /email/integration:
+ *   post:
+ *     summary: Send an integration email report
+ *     description: Sends an automated test report email based on the provided test ID.
+ *     tags:
+ *       - Email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               test_id:
+ *                 type: string
+ *                 description: The ID of the test to get the report for.
+ *                 example: "12345"
+ *     responses:
+ *       200:
+ *         description: Email sent successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: "Email sent to example@example.com"
+ *       500:
+ *         description: Failed to send email
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: "Failed to send email."
+ */
+router.post('/email/integration', emailController.sendIntegrationEmail);
 export default router;

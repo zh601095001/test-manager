@@ -3,6 +3,7 @@ import TestEntry from "../models/TestEntry";
 import TestReport from "../models/ReportModel";
 
 import Papa from "papaparse";
+import Integration from "../models/Integration";
 
 async function getEmail(test_id: string) {
     const users = await User.find({email: {$ne: null}, roles: "tester"})
@@ -162,6 +163,45 @@ async function getEmail(test_id: string) {
     }
 }
 
+const getIntegrationEmail = async (test_id: string): Promise<{
+    reportMessage: string,
+    emails: string[]
+}> => {
+    const users = await User.find({email: {$ne: null}, roles: "tester"})
+    let emails = users.map(user => user.email) as string[]
+    if (emails === null) {
+        emails = []
+    }
+    const IntegrationDoc = await Integration.findOne({
+        testid: test_id
+    }).lean()
+    if (!IntegrationDoc) {
+        throw new Error("test_id不存在")
+    }
+    const TOTAL_TEST = IntegrationDoc.integrationResult.length
+    let success = 0;
+    let failed = 0;
+    let failedSummary: any[] = [];
+    IntegrationDoc.integrationResult.forEach(item => {
+        if (item.status === '成功') {
+            success++;
+        } else if (item.status === '失败') {
+            failed++;
+            const obj = {
+                name: item.method,
+                errorMessage: item.errormessage
+            }
+            failedSummary.push(obj);
+        }
+    });
+    const successRate = 100 * success / TOTAL_TEST;
+    let reportMessage = `总案例数：${TOTAL_TEST}, \t 成功：${success}条, \t 失败：${failed}条, \t 成功率：${successRate.toFixed(2)}% \n\n 失败案例及其原因如下:\n`;
+    failedSummary.forEach(item => {
+        reportMessage += `${item.name}: ${item.errorMessage} \n`
+    })
+    return {reportMessage, emails}
+}
 export {
-    getEmail
+    getEmail,
+    getIntegrationEmail
 }

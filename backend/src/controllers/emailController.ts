@@ -1,6 +1,6 @@
 import transporter from "../config/mailConfig";
 import {Request, Response} from "express";
-import {getEmail} from "../services/emailServices"
+import {getEmail, getIntegrationEmail} from "../services/emailServices"
 import fs from "fs";
 
 const sendEmail = async (req: Request, res: Response) => {
@@ -43,4 +43,21 @@ const sendEmail = async (req: Request, res: Response) => {
     }
 };
 
-export default {sendEmail}
+const sendIntegrationEmail = async (req: Request, res: Response) => {
+    const {test_id} = req.body;
+    const {reportMessage, emails} = await getIntegrationEmail(test_id)
+    try {
+        let info = await transporter.sendMail({
+            from: process.env.EMAIL_AUTH_USER,
+            to: emails,
+            subject: "集成测试报告",
+            text: reportMessage,
+        });
+        res.send(`Email sent to ${emails.join(",")}`);
+    } catch (error) {
+        console.error('Error sending email:', error);
+        res.status(500).send('Failed to send email.');
+    }
+};
+
+export default {sendEmail, sendIntegrationEmail}

@@ -33,7 +33,8 @@ function Header({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen: (open: boo
             "设备池管理": "/devicepool",
             "Runner管理": "/runnerpool",
             "个人信息": "/profile",
-            "用户管理": "/users"
+            "用户管理": "/users",
+            "系统设置": "/settings"
         }
         for (const key of Object.keys(pathnameMapping)) {
             const pathnameValue = pathnameMapping[key]

@@ -1,7 +1,6 @@
-import transporter from "../config/mailConfig";
 import {Request, Response} from "express";
 import {getEmail, getIntegrationEmail} from "../services/emailServices"
-import fs from "fs";
+import getTransporter from "../config/mailConfig";
 
 const sendEmail = async (req: Request, res: Response) => {
     const {test_id} = req.body;
@@ -16,8 +15,8 @@ const sendEmail = async (req: Request, res: Response) => {
     } = infos
     const emails = infos["emails"] as string[]
     try {
-        let info = await transporter.sendMail({
-            from: process.env.EMAIL_AUTH_USER,
+        const sendMailWithFrom  = await getTransporter()
+        let info = await sendMailWithFrom({
             to: emails,
             subject: "自动化测试报告",
             text: `自动化测试报告详见附件\n在线地址:${remote_url}\n通过:${passed}\n失败:${failed}\n通过率:${passRate}%`,
@@ -45,13 +44,20 @@ const sendEmail = async (req: Request, res: Response) => {
 
 const sendIntegrationEmail = async (req: Request, res: Response) => {
     const {test_id} = req.body;
-    const {reportMessage, emails} = await getIntegrationEmail(test_id)
+    const {reportMessage, emails, htmlAttachment} = await getIntegrationEmail(test_id)
     try {
-        let info = await transporter.sendMail({
-            from: process.env.EMAIL_AUTH_USER,
+        const sendMailWithFrom  = await getTransporter()
+        let info = await sendMailWithFrom ({
             to: emails,
             subject: "集成测试报告",
             text: reportMessage,
+            attachments: [
+                {
+                    filename: 'report.html', // 附件文件名
+                    content: htmlAttachment, // 附件内容
+                    contentType: 'text/html' // 附件内容类型
+                },
+            ]
         });
         res.send(`Email sent to ${emails.join(",")}`);
     } catch (error) {

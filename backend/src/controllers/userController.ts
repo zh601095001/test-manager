@@ -1,7 +1,6 @@
 import {Request, Response} from 'express';
 import * as userService from '../services/userService';
-import transporter from "../config/mailConfig";
-import {updateEmailById} from "../services/userService";
+import getTransporter from "../config/mailConfig";
 
 interface CustomError extends Error {
     message: string;
@@ -140,9 +139,8 @@ export const sendPasswordResetEmail = async (req: Request, res: Response) => {
 
         // 创建重置链接
         const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
-
-        let info = await transporter.sendMail({
-            from: process.env.EMAIL_AUTH_USER,
+        const sendMailWithFrom = await getTransporter()
+        let info = await sendMailWithFrom({
             to: email,
             subject: '密码重置请求(DevicePool)',
             text: `您收到此电子邮件是因为您（或其他人）已请求重置与此电子邮件地址关联的账户的密码。\n\n请点击以下链接，或将其复制到浏览器以完成过程：\n\n${resetLink}\n\n如果您没有请求此操作，请忽略此电子邮件，您的密码将保持不变。\n`,

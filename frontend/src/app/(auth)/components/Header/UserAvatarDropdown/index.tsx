@@ -22,14 +22,20 @@ function UserAvatarDropdown({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen
         },
         {
             key: "2",
-            label: "个人设置",
-            icon: <SettingOutlined/>
+            label: "用户信息",
+            icon: <UserOutlined />
+        },
+        {
+            key: "3",
+            label: "系统设置",
+            icon: <SettingOutlined/>,
+            disabled: !isAdmin, // 根据isAdmin状态禁用或启用
         },
         {
             type: 'divider',
         },
         {
-            key: "3",
+            key: "4",
             label: "添加设备",
             icon: <DatabaseOutlined/>,
             disabled: !isAdmin, // 根据isAdmin状态禁用或启用
@@ -38,7 +44,7 @@ function UserAvatarDropdown({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen
             type: 'divider',
         },
         {
-            key: '4',
+            key: '5',
             danger: true,
             label: '退出登录',
             icon: <LogoutOutlined/>,
@@ -54,9 +60,12 @@ function UserAvatarDropdown({setIsAddDeviceModalOpen}: { setIsAddDeviceModalOpen
                 router.push("/profile")
                 break;
             case "3":
-                setIsAddDeviceModalOpen(true)
+                router.push("/settings")
                 break;
             case "4":
+                setIsAddDeviceModalOpen(true)
+                break;
+            case "5":
                 // @ts-ignore
                 logout();
                 message.success("注销成功");

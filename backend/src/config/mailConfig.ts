@@ -1,19 +1,33 @@
-import nodemailer from 'nodemailer';
-import {checkEnvVars} from "../utils/utils";
+import nodemailer, {SendMailOptions, Transporter} from 'nodemailer';
+import EmailSettings, {IEmailSettings} from "../models/EmailSettings";
 
-const requiredEmailEnvVars = ["EMAIL_HOST", "EMAIL_PORT", "EMAIL_AUTH_USER", "EMAIL_AUTH_PASS"];
-checkEnvVars(requiredEmailEnvVars);
+// 定义 getTransporter 函数返回类型
+type SendMailWithFrom = (mailOptions: Omit<SendMailOptions, 'from'>) => Promise<nodemailer.SentMessageInfo>;
 
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT as string),
-    secure: true, // true for 465, false for other ports
-    auth: {
-        user: process.env.EMAIL_AUTH_USER,
-        pass: process.env.EMAIL_AUTH_PASS
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
-});
-export default transporter;
+const getTransporter = async (): Promise<SendMailWithFrom> => {
+    const emailSettings: IEmailSettings | null = await EmailSettings.findOne();
+    if (!emailSettings) throw new Error("邮箱未正确配置");
+
+    const transporter: Transporter = nodemailer.createTransport({
+        host: emailSettings.emailHost,
+        port: emailSettings.emailPort,
+        secure: true, // true for 465, false for other ports
+        auth: {
+            user: emailSettings.emailAuthUser,
+            pass: emailSettings.emailAuthPass
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+
+    // 封装一个带有默认 from 的 sendMail 方法
+    return (mailOptions) => {
+        return transporter.sendMail({
+            from: emailSettings.emailAuthUser, // 默认的 from 地址
+            ...mailOptions
+        });
+    };
+};
+
+export default getTransporter;

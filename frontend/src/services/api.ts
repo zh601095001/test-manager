@@ -41,10 +41,17 @@ interface RefreshTokenResponse {
     email: string;
 }
 
+export interface EmailSettings {
+    emailHost: string;
+    emailPort: number;
+    emailAuthUser: string;
+    emailAuthPass: string;
+}
+
 export const api = createApi({
     reducerPath: 'usersApi',
     baseQuery: baseQueryWithReauth(true),
-    tagTypes: ['Users', "Avatar", "User", "Device-filters"],
+    tagTypes: ['Users', "Avatar", "User", "Device-filters", 'EmailSettings'],
     endpoints: (builder) => ({
         getUsers: builder.query<User[], void>({
             query: () => ({
@@ -262,6 +269,21 @@ export const api = createApi({
             }),
             invalidatesTags: ['User', "Avatar"],
         }),
+        getEmailSettings: builder.query<EmailSettings, void>({
+            query: () => ({
+                url: '/email-settings',
+                method: 'GET',
+            }),
+            providesTags: ['EmailSettings'],
+        }),
+        saveEmailSettings: builder.mutation<{ message: string }, EmailSettings>({
+            query: (settings) => ({
+                url: '/email-settings',
+                method: 'POST',
+                body: settings,
+            }),
+            invalidatesTags: ['EmailSettings'],
+        }),
     }),
 });
 
@@ -285,5 +307,7 @@ export const {
     useGetAvatarsQuery,
     useGetDeviceFiltersQuery,
     useSetDeviceFiltersMutation,
-    useSetNickNameMutation
+    useSetNickNameMutation,
+    useGetEmailSettingsQuery,
+    useSaveEmailSettingsMutation,
 } = api;

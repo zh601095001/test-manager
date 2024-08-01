@@ -8,10 +8,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "docker compose up -d",
-    "deploy": "docker compose -f docker-compose.yml up -d"
-  },
-  "dependencies": {
-    "bullmq": "^5.8.3",
-    "ioredis": "^5.4.1"
+    "deploy": "docker compose -f docker-compose.yml up -d",
+    "build": "cd ./frontend && python ./pack.py && cd ../backend && python ./pack.py"
   }
 }

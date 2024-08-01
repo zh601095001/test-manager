@@ -246,28 +246,31 @@ const DeviceTable: React.FC = () => {
                                 </Popconfirm>
                             ) : ""
                         }
-
-                        <Popconfirm
-                            title="确定要重启?"
-                            okText="确认"
-                            cancelText="取消"
-                            onConfirm={async () => {
-                                const sshConfig = await getSshConfig({
-                                    deviceIp: deviceIp
-                                }).unwrap()
-                                await createConcurrentTask({
-                                    title: `重启PLC-${deviceIp}`,
-                                    description: "切换固件版本",
-                                    taskType: "ssh",
-                                    script: "reboot",
-                                    environment: {...sshConfig, host: deviceIp},
-                                    parallel: 1
-                                }).unwrap()
-                                message.success(`设备${deviceIp}加入队列成功！`)
-                            }}
-                        >
-                            <Button type="primary" danger style={{marginRight: 10}}>重启PLC</Button>
-                        </Popconfirm>
+                        {
+                            isAdmin || isCurrentUser ? (
+                                <Popconfirm
+                                    title="确定要重启?"
+                                    okText="确认"
+                                    cancelText="取消"
+                                    onConfirm={async () => {
+                                        const sshConfig = await getSshConfig({
+                                            deviceIp: deviceIp
+                                        }).unwrap()
+                                        await createConcurrentTask({
+                                            title: `重启PLC-${deviceIp}`,
+                                            description: "切换固件版本",
+                                            taskType: "ssh",
+                                            script: "reboot",
+                                            environment: {...sshConfig, host: deviceIp},
+                                            parallel: 1
+                                        }).unwrap()
+                                        message.success(`设备${deviceIp}加入队列成功！`)
+                                    }}
+                                >
+                                    <Button type="primary" danger style={{marginRight: 10}}>重启PLC</Button>
+                                </Popconfirm>
+                            ) : ""
+                        }
                     </div>
                 ) : null
             },

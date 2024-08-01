@@ -165,7 +165,8 @@ async function getEmail(test_id: string) {
 
 const getIntegrationEmail = async (test_id: string): Promise<{
     reportMessage: string,
-    emails: string[]
+    emails: string[],
+    htmlAttachment: string
 }> => {
     const users = await User.find({email: {$ne: null}, roles: "tester"})
     let emails = users.map(user => user.email) as string[]
@@ -199,7 +200,72 @@ const getIntegrationEmail = async (test_id: string): Promise<{
     failedSummary.forEach(item => {
         reportMessage += `${item.name}: ${item.errorMessage} \n`
     })
-    return {reportMessage, emails}
+
+    const htmlAttachment = `
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>动态错误信息表格</title>
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 10px;
+        }
+
+        th,
+        td {
+            text-align: left;
+        }
+
+        .name {
+            max-width: 800px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>错误信息统计</h2>
+
+    <table id="errorTable">
+        <tr>
+            <th class="name">错误脚本</th>
+            <th class="message">错误信息</th>
+        </tr>
+        <!-- 错误信息行将在这里动态添加 -->
+    </table>
+
+    <script>
+        // 假设这是从某处获取的错误信息列表  
+        var errorMessages = ${JSON.stringify(IntegrationDoc.integrationResult)}
+        
+        // 创建一个函数来动态添加行到表格  
+        function addErrorRowsToTable(tableId, errors) {
+            var table = document.getElementById(tableId);
+
+            errors.forEach(function (error) {
+                var row = table.insertRow(-1); // 在表格的末尾插入新行  
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+
+                cell1.innerHTML = error.method; // 假设这一列总是这个值  
+                cell2.innerHTML = error.errorMessage;
+            });
+        }
+
+        // 调用函数，将错误信息添加到表格中  
+        addErrorRowsToTable('errorTable', errorMessages);  
+    </script>
+
+</body>
+
+</html>
+    `
+    return {reportMessage, emails, htmlAttachment}
 }
 export {
     getEmail,

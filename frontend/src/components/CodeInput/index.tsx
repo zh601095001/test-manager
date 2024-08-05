@@ -1,12 +1,13 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import {Select, message} from 'antd';
-import CodeMirror from '@uiw/react-codemirror';
+import CodeMirror, {EditorView, lineNumbers, keymap} from '@uiw/react-codemirror';
 import {javascript} from '@codemirror/lang-javascript';
 import {python} from '@codemirror/lang-python';
 import {StreamLanguage} from '@codemirror/language';
 import {shell} from '@codemirror/legacy-modes/mode/shell';
 import {Extension} from '@codemirror/state';
 import {vscodeDark} from '@uiw/codemirror-themes-all';
+import {defaultKeymap} from '@codemirror/commands';
 
 const {Option} = Select;
 
@@ -55,7 +56,6 @@ const CodeEditorForm: React.FC<CodeEditorFormProps> = ({
     const [saveStatus, setSaveStatus] = useState<boolean>(true); // 保存状态
     const initialShebang = getShebang(language);
     const [codeValue, setCodeValue] = useState<string>(value || (initialShebang ? `${initialShebang}\n` : ''));
-
     useEffect(() => {
         const shebang = getShebang(language);
         if (value && !value.startsWith(shebang)) {
@@ -155,9 +155,15 @@ const CodeEditorForm: React.FC<CodeEditorFormProps> = ({
                 value={codeValue}
                 height="200px"
                 theme={vscodeDark}
-                extensions={[getLanguageExtension(language)]}
                 onChange={handleCodeChange}
                 editable={!isSaving} // 在保存期间禁用输入
+                extensions={[
+                    getLanguageExtension(language),
+                    EditorView.lineWrapping, // 启用行自动换行
+                    lineNumbers(),
+                    keymap.of(defaultKeymap)
+                ]}
+                style={{width: '100%', fontSize: '14px', lineHeight: '1.5'}} // 调整字体大小和行高
             />
         </div>
     );

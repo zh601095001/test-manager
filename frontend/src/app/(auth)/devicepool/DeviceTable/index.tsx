@@ -122,7 +122,6 @@ const DeviceTable: React.FC = () => {
                 let displayName = value
                 if (!value) return ""
                 const currentAvatar = avatars ? avatars.find(avatar => avatar.username === value) : null;
-                console.log(currentAvatar, "currentAvatar")
                 if (currentAvatar && currentAvatar.nickName) {
                     displayName = currentAvatar.nickName
                 }

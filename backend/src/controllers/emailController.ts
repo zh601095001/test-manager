@@ -4,17 +4,17 @@ import getTransporter from "../config/mailConfig";
 
 const sendEmail = async (req: Request, res: Response) => {
     const {test_id} = req.body;
-    const infos = await getEmail(test_id)
-    const {
-        passed,
-        failed,
-        passRate,
-        remote_url,
-        html,
-        csv
-    } = infos
-    const emails = infos["emails"] as string[]
     try {
+        const infos = await getEmail(test_id)
+        const {
+            passed,
+            failed,
+            passRate,
+            remote_url,
+            html,
+            csv
+        } = infos
+        const emails = infos["emails"] as string[]
         const sendMailWithFrom  = await getTransporter()
         let info = await sendMailWithFrom({
             to: emails,
@@ -44,8 +44,8 @@ const sendEmail = async (req: Request, res: Response) => {
 
 const sendIntegrationEmail = async (req: Request, res: Response) => {
     const {test_id} = req.body;
-    const {reportMessage, emails, htmlAttachment} = await getIntegrationEmail(test_id)
     try {
+        const {reportMessage, emails, htmlAttachment} = await getIntegrationEmail(test_id)
         const sendMailWithFrom  = await getTransporter()
         let info = await sendMailWithFrom ({
             to: emails,

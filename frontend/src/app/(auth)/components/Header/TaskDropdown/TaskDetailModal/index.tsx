@@ -62,7 +62,7 @@ function TaskDetailModal({isModalOpen, setIsModalOpen, taskId}: {
     return (
         <Modal
             destroyOnClose={true}
-            width={"60%"}
+            width={800}
             title={(
                 <div style={{display: "flex", justifyContent: "left", alignItems: "center"}}>
                     <span style={{marginRight: 10}}>任务{taskTitle}详情</span>

@@ -74,9 +74,10 @@ export const updateEmail = async (user: any, email: string) => {
 }
 
 export const updateAvatar = async (user: any, avatar: string) => {
+    const avatarUrl = new URL(avatar)
     return User.findByIdAndUpdate(user._id, {
         $set: {
-            avatar
+            avatar: avatarUrl.origin + avatarUrl.pathname
         }
     })
 }
